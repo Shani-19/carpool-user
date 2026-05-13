@@ -3,7 +3,7 @@ import axios from 'axios';
 const isProd = process.env.NODE_ENV === 'production';
 const API_BASE = typeof window === 'undefined'
   ? (process.env.NEXT_PUBLIC_API_URL || 'https://partners.carpoolkr.com')
-  : ''; // Use relative paths on client to allow local proxy routes and Next.js rewrites to work correctly
+  : '/api/proxy'; // Use our custom proxy on the client to handle cookie domain stripping
 
 // Configure global axios defaults
 axios.defaults.withCredentials = true;
@@ -11,12 +11,12 @@ axios.defaults.withXSRFToken = true;
 
 export const api = axios.create({
   baseURL: API_BASE + '/api',
-  withCredentials: true, // Explicitly set on instance
-  withXSRFToken: true,    // Explicitly set on instance
+  withCredentials: true,
+  withXSRFToken: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest', // Important for Laravel to detect AJAX
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
