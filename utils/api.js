@@ -1,24 +1,36 @@
 import axios from 'axios';
 
 const isProd = process.env.NODE_ENV === 'production';
-const API_BASE = typeof window === 'undefined' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'https://partners.carpoolkr.com') 
+const API_BASE = typeof window === 'undefined'
+  ? (process.env.NEXT_PUBLIC_API_URL || 'https://partners.carpoolkr.com')
   : ''; // Use relative paths on client to allow local proxy routes and Next.js rewrites to work correctly
 
+// Configure global axios defaults
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
 export const api = axios.create({
   baseURL: API_BASE + '/api',
+  withCredentials: true, // Explicitly set on instance
+  withXSRFToken: true,    // Explicitly set on instance
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest', // Important for Laravel to detect AJAX
   },
 });
 
 export const authAPI = {
   async login(credentials) {
-    await axios.get(API_BASE + '/sanctum/csrf-cookie');
+    // 1. Get CSRF cookie first
+    // We use a separate axios call without the /api prefix since /sanctum is not under /api
+    await axios.get(API_BASE + '/sanctum/csrf-cookie', {
+      withCredentials: true
+    });
+    
+    // 2. Perform login
+    // Note: If your login route is actually /login (not /api/login), 
+    // you might need to use axios.post(API_BASE + '/login', ...) instead of api.post
     return api.post('/login', credentials);
   },
   logout: () => api.post('/logout'),
