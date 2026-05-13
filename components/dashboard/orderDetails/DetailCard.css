@@ -1,0 +1,124 @@
+.dt-section-card {
+    width: 100%;
+    border: 1px dotted lightgray;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.dt-info-row,
+.dt-section-header,
+.dt-info-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.dt-section-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+}
+
+.dt-section-header h4 {
+    margin: 0;
+    font-weight: 600;
+    /* font-size: 26px; */
+}
+
+/* --- Button Styling --- */
+.dt-btn-primary {
+    background-color: #405ff2;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.dt-btn-primary:hover {
+    background-color: #304cd0;
+}
+
+.dt-info-item {
+    width: 49%;
+    background: #E9F2FF;
+    padding: 10px 15px;
+    border-radius: 10px;
+    color: #405ff2;
+    margin: 14px 0;
+    margin-top: 0;
+}
+
+.dt-info-row:last-child .dt-info-item {
+    margin-bottom: 0;
+}
+
+.dt-info-item label {
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+.dt-info-item p {
+    margin: 0;
+    /* color: #405ff2; */
+    font-weight: 600;
+}
+
+.dt-row-full-width {
+    display: block;
+}
+
+.dt-row-full-width .dt-info-item {
+    width: 100%;
+}
+
+/* --- MEDIA QUERIES (Shared Responsiveness) --- */
+@media (max-width: 768px) {
+    .dt-info-item {
+        display: block;
+    }
+}
+
+@media (max-width: 576px) {
+    .dt-section-card {
+        padding: 14px;
+    }
+
+    .dt-section-header h4 {
+        font-size: 18px;
+    }
+
+    .dt-section-header button {
+        padding: 1px 6px;
+        font-size: 14px;
+    }
+
+    .dt-info-row {
+        display: block;
+    }
+
+    .dt-info-item {
+        width: 100%;
+        display: flex;
+        padding: 6px 10px;
+    }
+
+    .dt-row-full-width .dt-info-item {
+        display: block;
+    }
+
+    .dt-info-item p,
+    .dt-info-item label {
+        font-size: 14px;
+    }
+
+    .dt-info-row:last-child .dt-info-item:last-child {
+        margin-top: 14px;
+    }
+}

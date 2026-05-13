@@ -1,0 +1,1238 @@
+.txt-primary {
+    color: #DB0F38 !important;
+}
+
+input::placeholder {
+    color: #a6a6a6 !important;
+    font-weight: 300 !important;
+    /* color: #818181!important; */
+}
+
+.form_boxes label {
+    font-weight: 500 !important;
+    color: #000 !important;
+}
+
+button[type='submit']:disabled {
+    opacity: 0.8;
+    cursor: unset;
+}
+
+.footer-bottom a {
+    color: #fff;
+    margin-right: 45px;
+}
+
+.dashboard-widget .side-bar .nav-list li a img {
+    width: 100% !important;
+    height: auto !important;
+}
+
+.mb-sortBy {
+    margin-bottom: 0;
+}
+
+.mb-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+}
+
+.myBookingSec {
+    padding: 15px !important;
+}
+
+/* my bookings card */
+.nav-scroll-x::-webkit-scrollbar {
+    display: none;
+}
+
+.car-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.car-card {
+    display: flex;
+    /* align-items: center; */
+    justify-content: space-between;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.car-image {
+    line-height: 0 !important;
+}
+
+.car-image img {
+    border-radius: 8px;
+    /* object-fit: cover; */
+    width: auto;
+    /* height: revert-layer !important; */
+}
+
+.car-info {
+    display: flex;
+    margin-left: 20px;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
+
+.car-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #111827;
+}
+
+.vin {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 0px;
+    line-height: normal;
+}
+
+.mb-details {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* .mb-details span.badge.text-danger.me-1{
+    font-w
+} */
+
+.booking-info {
+    text-align: right;
+    font-size: 14px;
+    color: #374151;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.mb-booking-details img,
+.mb-booking-details svg {
+    vertical-align: baseline;
+}
+
+.booking-info strong {
+    font-weight: 600;
+    color: #6b7280c5;
+}
+
+.booking-info p {
+    margin-bottom: 0;
+    color: #6b7280c5;
+    font-size: 12px;
+    line-height: normal;
+}
+
+.d-status.badge {
+    font-size: 12px;
+}
+
+.mb-info-box {
+    display: flex;
+}
+
+.nav-tabs#bookingTab {
+    width: 100% !important;
+    white-space: nowrap;
+    margin: 0 0 16px;
+}
+
+.mb-title-listing {
+    margin-bottom: 38px;
+}
+
+.mb-filtBtn {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+button:focus,
+.btn:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+select:focus {
+    border: 1px solid lightgray !important;
+}
+
+.detail-sec .mbd-top-card {
+    border-radius: 12px;
+}
+
+.cstm-sidebar .cstm-slider-widget {
+    padding: 0 12px !important;
+}
+
+/* car listing */
+.cl-rightBox {
+    padding-top: 12px !important;
+    width: 75% !important;
+    display: flex !important;
+    justify-content: space-between;
+}
+
+.cl-contentBoxTwo::before {
+    height: 155px !important;
+    top: -8px !important;
+    /* top: 0!important; */
+}
+
+.cl-leftBox {
+    width: 25% !important;
+}
+
+.cl-rightBox .content-box {
+    width: 70% !important;
+}
+
+.cl-rightBox .cl-contentBoxTwo {
+    margin-left: 0 !important;
+}
+
+.cl-rightBox .cl-contentBoxTwo .button {
+    padding: 8px 12px !important;
+}
+
+.cl-rightBox .cl-contentBoxTwo .cl-report-btn {
+    text-decoration: underline;
+    text-decoration-color: #ff000042;
+}
+
+/* Reserved Vehicle Hover Overlay */
+.cl-reserved-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+figure.image:hover .cl-reserved-overlay,
+.service-block-thirteen:hover .cl-reserved-overlay {
+    opacity: 1;
+}
+
+.cl-reserved-overlay span {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    padding: 6px 20px;
+    border-radius: 4px;
+    background: rgba(220, 53, 69, 0.55);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.inventory-sidebar .categories-box {
+    padding: 10px 0 0 0;
+}
+
+.price-box form .form_boxes {
+    margin-bottom: 20px;
+}
+
+/* SearchableDropdown */
+.cstm-dropdown-list-item:hover .cstm-dli-count span {
+    color: #7686e6 !important;
+}
+
+@media (min-width: 1200px) {
+    .cl-rightBox .ul-cotent {
+        width: 100%;
+        white-space: nowrap;
+        overflow-x: scroll;
+        flex-wrap: nowrap !important;
+    }
+
+    .cl-rightBox .ul-cotent::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media (max-width: 1199px) {
+    .booking-info {
+        display: none;
+    }
+
+    .mb-info-box {
+        width: 100%;
+    }
+
+    .wrap-sidebar-dk .sidebar-handle {
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .wrap-sidebar-dk .sidebar-handle:hover {
+        background: #e9ecef;
+    }
+
+    .wrap-sidebar-dk .inventory-sidebar {
+        display: none;
+    }
+
+    .wrap-sidebar-dk .inventory-sidebar.active {
+        display: block !important;
+        margin-top: 15px;
+        /* border: 1px solid #e1e1e1;
+        border-radius: 12px;
+        padding: 15px; */
+        background: #fff;
+    }
+
+    .cstm-sidebar .form_boxes {
+        margin-bottom: 15px;
+    }
+
+    .cstm-sidebar {
+        border: none;
+        padding: 0;
+    }
+
+    .cstm-sidebar .cstm-year-clmn {
+        padding: 0 12px !important;
+    }
+
+    .cstm-sidebar .cstm-range-clmn {
+        padding: 0 !important;
+    }
+
+}
+
+@media (max-width: 991px) {
+    .mb-info-box {
+        width: 70%;
+    }
+
+    .booking-info {
+        display: flex;
+    }
+
+    /* Encar Listing Responsive */
+    .service-block-thirteen .inner-box {
+        flex-direction: column;
+    }
+
+    .cl-leftBox,
+    .cl-rightBox {
+        width: 100% !important;
+    }
+
+    .cl-leftBox .image {
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .cl-leftBox .image img {
+        width: 100%;
+        height: auto !important;
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .cl-rightBox {
+        border: 1px solid #e1e1e1 !important;
+        border-top: 0 !important;
+        border-radius: 0 0 8px 8px !important;
+        padding: 20px !important;
+        display: block !important;
+    }
+
+    .cl-rightBox .content-box {
+        width: 100% !important;
+    }
+
+    .cl-contentBoxTwo::before {
+        display: none !important;
+    }
+
+    .cl-rightBox .cl-contentBoxTwo {
+        margin-top: 20px !important;
+        padding-top: 20px !important;
+        border-top: 1px solid #e1e1e1 !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 0 !important;
+    }
+
+    .cl-rightBox .cl-contentBoxTwo .title {
+        margin: 0 !important;
+        flex-grow: 1;
+        text-align: left;
+        font-size: 18px !important;
+    }
+
+    .cl-rightBox .cl-contentBoxTwo .button,
+    .cl-rightBox .cl-contentBoxTwo .cl-report-btn {
+        margin-left: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cl-rightBox {
+        padding: 10px !important;
+    }
+
+    .cstm-filter-chip {
+        font-size: 11px !important;
+    }
+
+    .filter-summary {
+        padding: 10px !important;
+    }
+
+    .text-box {
+        margin-bottom: 20px !important;
+    }
+
+    .text-box .text {
+        font-size: 13px !important;
+    }
+
+    .form_boxes.v3 {
+        margin-bottom: 0 !important;
+    }
+
+    .cl-report-btn {
+        font-size: 13px !important;
+        margin-top: 5px !important;
+    }
+
+    .mb-mobile-hidden {
+        display: none;
+    }
+
+    .car-info {
+        margin-left: 0;
+        padding: 14px 10px;
+    }
+
+    .car-image,
+    .car-image img {
+        width: 100%;
+        height: auto !important;
+    }
+
+    .car-card .mb-details {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 90%;
+    }
+
+    .car-card p {
+        margin: 0;
+        line-height: 1.6 !important;
+    }
+
+    .car-title {
+        font-size: 16px;
+        margin-bottom: 0;
+    }
+
+    .mb-fs-row {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .mb-sbox {
+        width: 100% !important;
+    }
+
+    .mb-card-right-box {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+
+    /* mbd */
+    .mbd-car-card {
+        display: block;
+    }
+
+    .mbd-car-card .mb-card-right-box {
+        position: unset;
+        flex-direction: row-reverse !important;
+        padding: 0 15px;
+        align-items: center;
+        padding: 0 10px 14px;
+    }
+
+    .mbd-car-card .car-info {
+        padding-bottom: 0;
+    }
+
+    /* my bookings card */
+    .nav-scroll-x {
+        overflow-x: auto;
+    }
+
+    .nav-tabs#bookingTab {
+        width: max-content !important;
+    }
+
+    .detail-sec .info-item {
+        text-align: left !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px dotted lightgray;
+    }
+
+    .detail-sec .mbd-top-card {
+        padding: 0;
+        box-shadow: none !important;
+    }
+
+    .car-card {
+        padding: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .cl-rightBox .cl-contentBoxTwo {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .cl-rightBox .cl-contentBoxTwo .title {
+        text-align: center !important;
+        margin-bottom: 10px !important;
+    }
+
+    .cl-rightBox .cl-contentBoxTwo .button,
+    .cl-rightBox .cl-contentBoxTwo .cl-report-btn {
+        margin-left: 0 !important;
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+
+    .cstm-numOfVeh-row {
+        flex-direction: column;
+        width: fit-content !important;
+    }
+}
+
+.inspection-sec,
+.ul-cotent {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 2px;
+}
+
+.inspection-sec::-webkit-scrollbar,
+.ul-cotent::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* 22/4/26 code updated with Maira's Changes START */
+/* Edited by Maira */
+/* Dropdown hover/active items — match navbar teal (#0C768A) */
+.header-style-v1 .header-inner .c-box .nav-out-bar .nav .navigation .current-dropdown .dropdown li a:hover,
+.header-style-v1 .header-inner .c-box .nav-out-bar .nav .navigation .current-dropdown .dropdown li a.menuActive {
+    background-color: #0C768A;
+    color: #ffffff;
+}
+
+.header-style-v1 .navigation .current-dropdown .dropdown .cars-mega-link:hover,
+.header-style-v1 .navigation .current-dropdown .dropdown .cars-mega-link.menuActive {
+    background-color: #0C768A;
+    color: #ffffff;
+}
+
+.header-style-v1 .navigation .current-dropdown .dropdown .cars-mega-link:hover .cars-mega-icon,
+.header-style-v1 .navigation .current-dropdown .dropdown .cars-mega-link.menuActive .cars-mega-icon {
+    color: #ffffff;
+}
+
+.header-style-v1 .mega-menu .mega-column ul li a:hover,
+.header-style-v1 .mega-menu .mega-column ul li a.menuActive {
+    background-color: #0C768A;
+    color: #ffffff;
+}
+
+/* Edited by Maira — CarPool Korea Footer */
+.cpk-footer {
+    background: linear-gradient(180deg, #0C768A 0%, #095A6B 100%);
+    color: #ffffff;
+    font-family: inherit;
+}
+
+.cpk-footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    /* Edited by Maira — extra top spacing above footer sections */
+    padding: 104px 24px 48px;
+}
+
+/* Added by Maira — footer column alignment */
+/* Edited by Maira — widened Quick Menu column so 2-col links fit on single line */
+.cpk-footer-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1.5fr 1fr 1.2fr;
+    gap: 48px;
+    align-items: flex-start;
+}
+
+/* Added by Maira — footer column alignment */
+.cpk-footer-grid>div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.cpk-col-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #ffffff;
+    /* Added by Maira — align col-title with brand heading baseline */
+    margin: 8px 0 22px;
+    padding-bottom: 12px;
+    position: relative;
+}
+
+.cpk-col-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 36px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 2px;
+}
+
+.cpk-brand {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: #ffffff;
+    margin: 0 0 16px;
+    line-height: 1.2;
+}
+
+.cpk-brand span {
+    color: #E0F7F5;
+}
+
+.cpk-brand-desc {
+    font-size: 14px;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0;
+    max-width: 380px;
+}
+
+.cpk-tagline {
+    margin-top: 14px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.65);
+    letter-spacing: 0.4px;
+}
+
+.cpk-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.cpk-links a {
+    position: relative;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 14.5px;
+    text-decoration: none;
+    display: inline-block;
+    transition: color 0.2s ease, padding-left 0.2s ease, opacity 0.2s ease;
+}
+
+.cpk-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0;
+    height: 1px;
+    background: #ffffff;
+    transition: width 0.2s ease;
+}
+
+.cpk-links a:hover {
+    color: #ffffff;
+    padding-left: 6px;
+    opacity: 0.9;
+}
+
+.cpk-links a:hover::after {
+    width: 100%;
+}
+
+.cpk-hours {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.cpk-hours li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+    padding-bottom: 10px;
+}
+
+.cpk-hours li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.cpk-hours .label {
+    font-weight: 500;
+}
+
+.cpk-hours .value {
+    font-variant-numeric: tabular-nums;
+    color: #ffffff;
+}
+
+/* Edited by Maira — Sunday highlighted in light teal that fits the background */
+.cpk-hours .closed {
+    color: #9FD4D2;
+    font-weight: 600;
+}
+
+/* Edited by Maira — muted Sunday label in light teal */
+.cpk-hours .muted-label {
+    color: #9FD4D2;
+}
+
+.cpk-contact {
+    display: grid;
+    gap: 14px;
+}
+
+.cpk-contact-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.6;
+}
+
+.cpk-contact-row i {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.cpk-contact-row a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.cpk-contact-row a:hover {
+    color: #ffffff;
+}
+
+.cpk-bottom {
+    background: #07475A;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cpk-bottom-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.cpk-bottom-nav {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+.cpk-bottom-nav a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.cpk-bottom-nav a:hover {
+    color: #ffffff;
+}
+
+.cpk-bottom-divider {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Edited by Maira — social icons row under tagline */
+.cpk-social {
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.cpk-social a {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cpk-social a:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+}
+
+/* Edited by Maira — Quick Menu two-column layout with arrow bullets (single-line items) */
+.cpk-quickmenu {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 18px;
+    align-items: start;
+}
+
+.cpk-quickmenu li {
+    position: relative;
+    padding-left: 14px;
+    line-height: 1.3;
+}
+
+.cpk-quickmenu li::before {
+    content: "\203A";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-55%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    line-height: 1;
+}
+
+.cpk-quickmenu a {
+    white-space: nowrap;
+}
+
+.cpk-quickmenu a::after {
+    display: none;
+}
+
+.cpk-quickmenu a:hover {
+    padding-left: 4px;
+}
+
+/* Edited by Maira — horizontal app download buttons (side by side, centered) */
+.cpk-apps {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.cpk-app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.cpk-app-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.32);
+    transform: translateY(-1px);
+}
+
+.cpk-app-btn i {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.cpk-app-btn span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.cpk-app-btn small {
+    font-size: 10px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cpk-app-btn strong {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+    .cpk-footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+}
+
+@media (max-width: 640px) {
+    .cpk-footer-inner {
+        padding: 72px 20px 36px;
+    }
+
+    .cpk-footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .cpk-bottom-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cpk-quickmenu {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Edited by Maira — arrow bullets for Cars mega-menu */
+.cars-mega-arrow {
+    font-size: 18px;
+    line-height: 1;
+    color: #0C768A;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.cars-mega-link:hover .cars-mega-arrow,
+.cars-mega-link.menuActive .cars-mega-arrow {
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+/* Edited by Maira — top header bar with angled maroon panel */
+.top-header-bar {
+    background: #e60023;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    height: 40px;
+    font-size: 13px;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-header-left {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 0 48px 0 24px;
+    background: linear-gradient(135deg, #4d1e28 0%, #662935 45%, #7a3241 100%);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 28px) 100%, 0 100%);
+}
+
+.top-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 24px;
+}
+
+.top-header-label {
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    color: #ffffff;
+}
+
+.top-header-divider {
+    opacity: 0.55;
+    font-weight: 300;
+    color: #ffffff;
+}
+
+/* Edited by Maira — white phone text */
+.top-header-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.top-header-phone i {
+    font-size: 12px;
+    color: #ffffff;
+}
+
+.top-header-phone strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.top-header-auth {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.top-header-auth:hover {
+    opacity: 0.8;
+    color: #ffffff;
+}
+
+/* Edited by Maira — maroon-tile social icons */
+.top-social-icon {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #662935;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.top-social-icon:hover {
+    background: #4d1e28;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* Edited by Maira — back-to-top car image (larger + headlight glow on hover/click) */
+@keyframes cpk-lights-on {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(255, 224, 102, 0)) brightness(1);
+    }
+
+    60% {
+        filter: drop-shadow(0 0 8px #FFE066) drop-shadow(0 0 16px rgba(255, 210, 80, 0.85)) brightness(1.15);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 6px #FFE066) drop-shadow(0 0 12px rgba(255, 210, 80, 0.7)) brightness(1.1);
+    }
+}
+
+@keyframes cpk-lights-flash {
+    0% {
+        filter: drop-shadow(0 0 6px #FFE066) drop-shadow(0 0 12px rgba(255, 210, 80, 0.7)) brightness(1.1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 14px #FFFFFF) drop-shadow(0 0 26px #FFE066) brightness(1.35);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 6px #FFE066) drop-shadow(0 0 12px rgba(255, 210, 80, 0.7)) brightness(1.1);
+    }
+}
+
+.cpk-back-to-top {
+    width: 68px !important;
+    height: 68px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    overflow: visible;
+    transition: transform 0.25s ease, filter 0.25s ease !important;
+}
+
+.cpk-back-to-top:hover {
+    background-color: transparent !important;
+    transform: translateY(-3px) scale(1.06);
+}
+
+.cpk-back-to-top:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* Edited by Maira — fixed display size for back-to-top car image */
+.cpk-car-img {
+    width: 50px;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    transition: filter 0.25s ease;
+}
+
+/* Edited by Maira — headlights turn on when hovered */
+.cpk-back-to-top:hover .cpk-car-img {
+    animation: cpk-lights-on 0.45s ease-out forwards;
+}
+
+/* Edited by Maira — bright flash on click/tap */
+.cpk-back-to-top:active .cpk-car-img {
+    animation: cpk-lights-flash 0.4s ease-in-out;
+}
+
+@media (max-width: 640px) {
+
+    /* Edited by Maira — slightly smaller back-to-top on small screens */
+    .cpk-back-to-top {
+        width: 58px !important;
+        height: 58px !important;
+    }
+
+    .cpk-car-img {
+        width: 42px;
+    }
+}
+
+@media (max-width: 720px) {
+
+    /* Edited by Maira — responsive top bar */
+    .top-header-bar {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 0;
+        gap: 4px;
+        font-size: 12px;
+    }
+
+    .top-header-left {
+        width: 100%;
+        clip-path: none;
+        padding: 8px 16px;
+    }
+
+    .top-header-right {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        padding: 8px 16px;
+    }
+}
+
+
+
+/*  */
+
+
+.wrap-gallery-box .content-box {
+    margin-bottom: 6px;
+}
+
+.slick-slider:not(.inner-slide) .slick-slide>div:has(.image-box) {
+    margin-right: 0 !important;
+}
+
+.slick-slider:not(.inner-slide) .slick-slide>div:has(.car-block-three) {
+    margin-right: 20px !important;
+}
+
+.cars-block .inner-box:has(.image-box) {
+    padding: 20px 20px 0 20px !important;
+}
+
+/* Fixed height for related listing images */
+.car-block-three .inner-box .image-box .image img {
+    height: 250px !important;
+    object-fit: cover !important;
+    width: 100% !important;
+    transition: transform 0.5s ease !important;
+}
+
+.car-block-three .inner-box:hover .image-box .image img {
+    transform: scale(1.1) !important;
+}
+
+.car-block-three .inner-box .image-box {
+    overflow: hidden !important;
+    border-radius: 12px !important;
+}
+
+.cars-section-three:not(.inventory-section .cars-section-three) {
+    padding: 0px 0 160px !important;
+}
