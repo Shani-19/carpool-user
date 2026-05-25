@@ -36,11 +36,16 @@ export const authAPI = {
   bookingDetailUpdate: (updateData) => api.post('/bookings/update', updateData),
   orderDetailUpdate: (updateData) => api.post('/orders/update', updateData),
   getCountries: () => api.get('/countries'),
+  submitInspectionRequest: (data) => api.post('/inspection-request', data),
 };
 
 export const bookingAPI = {
   getMyBookings: (query = '') => api.get(`/my-bookings${query}`),
   bookingDetail: (booking_num) => api.get(`/bookings/${booking_num}`),
+};
+
+export const inspectionAPI = {
+  getInspectionList: (query = '') => api.get(`/inspection-list${query}`),
 };
 
 export const orderAPI = {

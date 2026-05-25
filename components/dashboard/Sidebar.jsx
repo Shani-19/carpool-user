@@ -34,7 +34,21 @@ const menuItems = [
     src: "/images/icons/dash2.svg",
     width: 22,
     height: 22,
-    label: "Reserved Vehicles",
+    label: "Reserved",
+  },
+  {
+    href: "/inspection",
+    src: "/images/icons/dash2.svg",
+    width: 22,
+    height: 22,
+    label: "Inspection",
+  },
+  {
+    href: "/quotation",
+    src: "/images/icons/dash3.svg",
+    width: 22,
+    height: 22,
+    label: "Quotation",
   },
   {
     href: "/add-listings",

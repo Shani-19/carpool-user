@@ -86,7 +86,7 @@ export default function BookingDetailPage() {
       status: booking.status === 'Complete' ? 'Completed' : booking.status || 'Unknown',
       vehicleType: vehicleType,
       bookingType: bookingType,
-      bookedBy: booking.admin.name,
+      bookedBy: booking.admin?.name || 'User',
       price: finalPrice,
       // portSizeId: vehicle?.port_size_id,
       // rawBooking: booking,
@@ -160,7 +160,7 @@ export default function BookingDetailPage() {
   // console.log(transformedBookings, transformedQuotVehicles);
 
   const firstBooking = bookingData.bookings[0];
-  const orderStatus = firstBooking.order_single ? firstBooking.order_single.order_status : firstBooking.order_mul.status;
+  const orderStatus = firstBooking.order_single ? firstBooking.order_single.order_status : firstBooking.status;
   const btnConditionA = !orderStatus && firstBooking.status !== 'Canceled';
   const btnConditionB = orderStatus && orderStatus === 'New';
   const btnDisplayCheck = btnConditionA || btnConditionB;

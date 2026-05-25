@@ -103,12 +103,33 @@ export const getEncarFilterOptions = async (params = {}) => {
     }
 };
 
+const ENCAR_HEADERS = {
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+    'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+    'Sec-Ch-Ua-Mobile': '?0',
+    'Sec-Ch-Ua-Platform': '"Windows"',
+    'Sec-Fetch-Dest': 'empty',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Site': 'same-site',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+};
+
 export const getEncarVehicleDetail = async (carId) => {
     try {
-        const res = await api.get(`/encar/detail/${carId}`);
+        // Call Encar API directly (the partners backend doesn't have this route)
+        const res = await axios.get(`https://api.encar.com/v1/readside/vehicle/${carId}/`, {
+            headers: {
+                ...ENCAR_HEADERS,
+                'Origin': 'https://fem.encar.com',
+                'Referer': `https://fem.encar.com/cars/detail/${carId}`
+            }
+        });
         return res.data;
     } catch (error) {
-        console.error(`Failed to fetch vehicle detail for ${carId}:`, error);
+        console.error(`Failed to fetch vehicle detail for ${carId}:`, error.message);
         return null;
     }
 };

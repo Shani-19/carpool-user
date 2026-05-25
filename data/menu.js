@@ -108,6 +108,7 @@ export const tempPagesA = [
     links: [
       { title: "Dashboard", href: "/dashboard" },
       { title: "My Bookings", href: "/my-bookings" },
+      { title: "Inspection", href: "/inspection" },
       { title: "Add Listings", href: "/add-listings" },
       { title: "Favorites", href: "/favorite" },
       { title: "Saved Search", href: "/saved" },
@@ -139,6 +140,7 @@ export const tempPagesB = [
     links: [
       { title: "Dashboard", href: "/dashboard" },
       { title: "My Listings", href: "/my-listings" },
+      { title: "Inspection", href: "/inspection" },
       { title: "Add Listings", href: "/add-listings" },
       { title: "Favorites", href: "/favorite" },
       { title: "Saved Search", href: "/saved" },

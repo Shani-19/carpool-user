@@ -5,9 +5,60 @@ import Image from "next/image";
 import Link from "next/link";
 import { Gallery, Item } from "react-photoswipe-gallery";
 import ModalVideo from "react-modal-video";
-import Financing from "./sections/Financing";
+import ShippingCalculator from "./sections/ShippingCalculator";
 import RelatedEncarCars from "./RelatedEncarCars";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/utils/api";
+
+const areaMap = {
+    'Seoul': '서울', 'Busan': '부산', 'Incheon': '인천', 'Daegu': '대구', 'Daejeon': '대전',
+    'Gwangju': '광주', 'Ulsan': '울산', 'Sejong': '세종', 'Suwon': '수원', 'Seongnam': '성남',
+    'Goyang': '고양', 'Yongin': '용인', 'Bucheon': '부천', 'Ansan': '안산', 'Anyang': '안양',
+    'Namyangju': '남양주', 'Hwaseong': '화성', 'Pyeongtaek': '평택', 'Uijeongbu': '의정부',
+    'Siheung': '시흥', 'Paju': '파주', 'Gwangmyeong': '광명', 'Gunpo': '군포', 'Icheon': '이천',
+    'Yangju': '양주', 'Osan': '오산', 'Guri': '구리', 'Anseong': '안성', 'Uiwang': '의왕',
+    'Hanam': '하남', 'Dongducheon': '동두천', 'Gwacheon': '과천', 'Yeoju': '여주',
+    'Chuncheon': '춘천', 'Wonju': '원주', 'Gangneung': '강릉', 'Donghae': '동해',
+    'Taebaek': '태백', 'Sokcho': '속초', 'Samcheok': '삼척', 'Cheongju': '청주',
+    'Chungju': '충주', 'Jecheon': '제천', 'Cheonan': '천안', 'Asan': '아산',
+    'Boryeong': '보령', 'Nonsan': '논산', 'Gyeryong': '계룡', 'Dangjin': '당진',
+    'Seosan': '서산', 'Jeonju': '전주', 'Iksan': '익산', 'Gunsan': '군산',
+    'Jeongeup': '정읍', 'Namwon': '남원', 'Gimje': '김제', 'Mokpo': '목포',
+    'Yeosu': '여수', 'Suncheon': '순천', 'Naju': '나주', 'Gwangyang': '광양',
+    'Pohang': '포항', 'Gyeongju': '경주', 'Gimcheon': '김천', 'Andong': '안동',
+    'Gumi': '구미', 'Yeongju': '영주', 'Yeongcheon': '영천', 'Sangju': '상주',
+    'Mungyeong': '문경', 'Changwon': '창원', 'Jinju': '진주', 'Tongyeong': '통영',
+    'Sacheon': '사천', 'Gimhae': '김해', 'Miryang': '밀양', 'Geoje': '거제',
+    'Yangsan': '양산', 'Jeju City': '제주시', 'Seogwipo': '서귀포', 'Gwangju (Gyeonggi)': '광주'
+};
+
+const areaToAdminMapping = {
+    // Tasadaq Raja (ID: 31)
+    'Suwon': 31, 'Yongin': 31, 'Ansan': 31, 'Anyang': 31, 
+    'Hwaseong': 31, 'Pyeongtaek': 31, 'Siheung': 31, 'Gunpo': 31, 
+    'Icheon': 31, 'Osan': 31, 'Cheonan': 31, 'Asan': 31, 'Boryeong': 31, 'Nonsan': 31,
+
+    // Ahmad Afzal (ID: 29)
+    'Seoul': 29, 'Incheon': 29, 'Seongnam': 29, 'Goyang': 29, 'Bucheon': 29, 'Namyangju': 29, 
+    'Uijeongbu': 29, 'Paju': 29, 'Gwangmyeong': 29, 'Yangju': 29, 'Guri': 29, 
+    'Anseong': 29, 'Uiwang': 29, 'Hanam': 29, 'Dongducheon': 29, 'Gwacheon': 29,
+
+    // Mr Jong (ID: 37)
+    'Busan': 37, 'Daegu': 37, 'Gwangju': 37, 'Ulsan': 37, 'Yeoju': 37, 
+    'Chuncheon': 37, 'Wonju': 37, 'Gangneung': 37, 'Donghae': 37, 'Taebaek': 37, 
+    'Sokcho': 37, 'Samcheok': 37, 'Seosan': 37, 'Jeonju': 37, 'Iksan': 37, 
+    'Gunsan': 37, 'Jeongeup': 37, 'Namwon': 37, 'Gimje': 37, 'Mokpo': 37, 
+    'Yeosu': 37, 'Suncheon': 37, 'Naju': 37, 'Gwangyang': 37, 'Pohang': 37, 
+    'Gyeongju': 37, 'Gimcheon': 37, 'Andong': 37, 'Gumi': 37, 'Yeongju': 37, 
+    'Yeongcheon': 37, 'Sangju': 37, 'Mungyeong': 37, 'Changwon': 37, 'Jinju': 37, 
+    'Tongyeong': 37, 'Sacheon': 37, 'Gimhae': 37, 'Miryang': 37, 'Geoje': 37, 
+    'Yangsan': 37, 'Jeju City': 37, 'Seogwipo': 37, 'Gwangju (Gyeonggi)': 37,
+
+    // Dr Ehsan Mirza (ID: 36)
+    'Daejeon': 36, 'Sejong': 36, 'Cheongju': 36, 'Chungju': 36, 'Jecheon': 36, 
+    'Gyeryong': 36, 'Dangjin': 36
+};
 
 // Helper to format numbers
 const fmtNumber = (val) => {
@@ -48,10 +99,126 @@ const PhotoItem = ({ original, thumbnail, children }) => {
 };
 
 export default function EncarSingle({ carItem }) {
+  const { user } = useAuth();
+  const [reportCode, setReportCode] = useState(null);
+  const [hasReport, setHasReport] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(true);
+  const [reportWarningMsg, setReportWarningMsg] = useState(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [modalFormData, setModalFormData] = useState({
+    remarks: ""
+  });
+  const [modalSubmitting, setModalSubmitting] = useState(false);
+  const [modalSuccessMsg, setModalSuccessMsg] = useState("");
+  const [modalErrorMsg, setModalErrorMsg] = useState("");
+
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [isOpen, setOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const { currency, format, convert } = useCurrency();
+
+  useEffect(() => {
+    if (carItem?.vin) {
+      setLoadingReport(true);
+      api.post('/report-check', { vin: carItem.vin })
+        .then(res => {
+          if (res.data && res.data.success) {
+            setHasReport(true);
+            setReportCode(res.data.code);
+            setReportWarningMsg(null);
+          } else if (res.data && res.data.warning) {
+            setHasReport(false);
+            setReportCode(null);
+            setReportWarningMsg(res.data.message);
+          } else {
+            setHasReport(false);
+            setReportCode(null);
+            setReportWarningMsg(null);
+          }
+        })
+        .catch(err => {
+          console.error("Error checking VIN report status:", err);
+          setHasReport(false);
+          setReportCode(null);
+          setReportWarningMsg(null);
+        })
+        .finally(() => {
+          setLoadingReport(false);
+        });
+    } else {
+      setHasReport(false);
+      setReportCode(null);
+      setReportWarningMsg(null);
+      setLoadingReport(false);
+    }
+  }, [carItem?.vin]);
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!user) {
+      setModalErrorMsg("User not authenticated");
+      return;
+    }
+
+    setModalSubmitting(true);
+    setModalSuccessMsg("");
+    setModalErrorMsg("");
+
+    let area = "";
+    let assign_person = "";
+    
+    if (carItem?.dealer?.address) {
+      for (const [englishName, koreanName] of Object.entries(areaMap)) {
+        if (carItem.dealer.address.includes(koreanName)) {
+          area = englishName;
+          assign_person = areaToAdminMapping[englishName];
+          break;
+        }
+      }
+    }
+    
+    // Fallback if not found
+    if (!area) {
+        area = "Seoul";
+        assign_person = 29;
+    }
+
+    const payload = {
+      assign_person,
+      phone: carItem?.dealer?.phone || "",
+      address: carItem?.dealer?.address || "",
+      area,
+      vin: carItem?.vin || "",
+      url: carItem?.id ? `https://fem.encar.com/cars/detail/${carItem.id}` : "",
+      plate_no: carItem?.plate_no || carItem?.vehicle_no || carItem?.name || "",
+      remarks: modalFormData.remarks
+    };
+
+    try {
+      const res = await api.post('/encar-request', payload);
+      if (res.data?.success) {
+        setModalSuccessMsg(res.data.message || "Inspection Request submitted successfully");
+        setReportWarningMsg("Inspection Request is Pending");
+        setTimeout(() => {
+          setShowRequestModal(false);
+          setModalSuccessMsg("");
+          setModalFormData({ remarks: "" });
+        }, 3000);
+      } else {
+        setModalErrorMsg(res.data?.message || "Failed to submit request. Please try again.");
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      if (err.response?.data?.message) {
+        setModalErrorMsg(err.response.data.message);
+      } else {
+        setModalErrorMsg("Sorry, There is an error on server!");
+      }
+    } finally {
+      setModalSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     console.log("EncarSingle carItem:", carItem);
@@ -425,8 +592,62 @@ export default function EncarSingle({ carItem }) {
                 </div>
 
                 <div className="form-box v2 mt-4">
-                  <Financing />
+                  <ShippingCalculator vehicleItem={carItem} displayPrice={displayPrice} />
                 </div>
+
+                {!hasReport && (
+                  <div className="mt-3" style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => reportWarningMsg ? null : (user ? setShowRequestModal(true) : null)}
+                      className="theme-btn btn-style-one w-100"
+                      disabled={!!reportWarningMsg}
+                      style={{
+                        background: reportWarningMsg ? '#6c757d' : '#405FF2',
+                        color: '#fff',
+                        padding: '14px 20px',
+                        borderRadius: '10px',
+                        fontWeight: '700',
+                        fontSize: '15px',
+                        border: 'none',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 14px rgba(64, 95, 242, 0.2)',
+                        filter: (!user && !reportWarningMsg) ? 'blur(3px)' : 'none',
+                        pointerEvents: (!user || reportWarningMsg) ? 'none' : 'auto',
+                        opacity: (!user && !reportWarningMsg) ? 0.8 : (reportWarningMsg ? 0.6 : 1)
+                      }}
+                    >
+                      {reportWarningMsg || "Request An Inspection"}
+                    </button>
+
+                    {!user && !reportWarningMsg && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 2
+                      }}>
+                        <Link href="/login" style={{
+                          background: 'rgba(5, 11, 32, 0.85)',
+                          color: 'white',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          textDecoration: 'none',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                        }}>
+                          Please Login First
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -440,6 +661,127 @@ export default function EncarSingle({ carItem }) {
         />
       </section>
       <RelatedEncarCars carId={carItem?.id} />
+
+      {showRequestModal && (
+        <div 
+          className="modal d-block show" 
+          tabIndex="-1"
+          role="dialog"
+          style={{ 
+            backgroundColor: 'rgba(5, 11, 32, 0.6)', 
+            backdropFilter: 'blur(10px)',
+            zIndex: 1050 
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '500px' }}>
+            <div 
+              className="modal-content border-0 shadow-lg rounded-4 overflow-hidden" 
+              style={{ background: '#fff' }}
+            >
+              {/* Header */}
+              <div 
+                className="modal-header px-4 py-3 border-0 d-flex justify-content-between align-items-center"
+                style={{ 
+                  background: 'linear-gradient(135deg, #405FF2 0%, #2b40a6 100%)',
+                  color: '#fff'
+                }}
+              >
+                <h5 className="modal-title fw-bold text-white mb-0" style={{ fontSize: '18px' }}>
+                  Request Vehicle Inspection
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close btn-close-white border-0 bg-transparent text-white fs-4" 
+                  onClick={() => setShowRequestModal(false)}
+                  aria-label="Close"
+                  style={{ opacity: 0.8, cursor: 'pointer' }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="modal-body p-4">
+                <p className="text-muted mb-3" style={{ fontSize: '14px', lineHeight: '1.5' }}>
+                  Please confirm your details and vehicle information to request a professional inspection report for <strong>{carItem?.name}</strong>.
+                </p>
+
+                <div className="bg-light p-3 rounded-3 mb-4" style={{ fontSize: '13px', border: '1px solid #e2e8f0' }}>
+                  <div className="row g-3">
+                    <div className="col-12 col-md-6">
+                      <h6 className="fw-bold mb-2 text-primary" style={{ fontSize: '14px' }}>User Details</h6>
+                      <div className="d-flex flex-column gap-1">
+                        <div><span className="text-muted">Name:</span> <strong className="text-dark">{user?.name || "-"}</strong></div>
+                        <div><span className="text-muted">Phone:</span> <strong className="text-dark">{user?.mobile || user?.phone || "-"}</strong></div>
+                        <div><span className="text-muted">Email:</span> <strong className="text-dark">{user?.email || "-"}</strong></div>
+                        <div><span className="text-muted">Country:</span> <strong className="text-dark">{user?.country || "-"}</strong></div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <h6 className="fw-bold mb-2 text-primary" style={{ fontSize: '14px' }}>Vehicle Details</h6>
+                      <div className="d-flex flex-column gap-1">
+                        <div><span className="text-muted">VIN:</span> <strong className="text-dark">{carItem?.vin || "-"}</strong></div>
+                        <div><span className="text-muted">Plate:</span> <strong className="text-dark">{carItem?.plate_no || carItem?.vehicle_no || carItem?.name || "-"}</strong></div>
+                        <div><span className="text-muted">Transmission:</span> <strong className="text-dark">{carItem?.transmission || "-"}</strong></div>
+                        <div><span className="text-muted">Type:</span> <strong className="text-dark">{carItem?.vehicle_type || "-"}</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {modalSuccessMsg && (
+                  <div className="alert alert-success border-0 rounded-3 mb-3 d-flex align-items-center" style={{ backgroundColor: '#ecfdf5', color: '#065f46' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>{modalSuccessMsg}</span>
+                  </div>
+                )}
+
+                {modalErrorMsg && (
+                  <div className="alert alert-danger border-0 rounded-3 mb-3 d-flex align-items-center" style={{ backgroundColor: '#fef2f2', color: '#991b1b' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>{modalErrorMsg}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleModalSubmit}>
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold text-dark mb-1" style={{ fontSize: '13px' }}>Remarks (Optional)</label>
+                    <textarea
+                      className="form-control border p-3 rounded-3"
+                      value={modalFormData.remarks}
+                      onChange={(e) => setModalFormData({ ...modalFormData, remarks: e.target.value })}
+                      placeholder="Add any optional notes here..."
+                      rows="4"
+                      style={{ fontSize: '14px', borderColor: '#e2e8f0', resize: 'none' }}
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={modalSubmitting}
+                    className="theme-btn btn-style-one w-100 py-3"
+                    style={{
+                      background: '#405FF2',
+                      color: '#fff',
+                      borderRadius: '10px',
+                      fontWeight: '700',
+                      fontSize: '15px',
+                      border: 'none',
+                      boxShadow: '0 4px 12px rgba(64, 95, 242, 0.2)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {modalSubmitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Submitting...
+                      </>
+                    ) : "Submit Request"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
