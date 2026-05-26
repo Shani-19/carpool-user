@@ -69,6 +69,7 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
     }
   };
 
+  const vType = vehicleItem?.vehicle_type || vehicleItem?.spec?.bodyName || vehicleItem?.spec?.BodyName || "";
   const fetchPortChargesList = async (countryId, portId) => {
     if (!countryId || !portId) return;
     try {
@@ -77,7 +78,6 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
       let sizeId = 12; // Default to 'Others'
 
       // Fallback to raw spec.bodyName if vehicle_type isn't properly normalized
-      const vType = vehicleItem?.vehicle_type || vehicleItem?.spec?.bodyName || vehicleItem?.spec?.BodyName || "";
 
       if (vType === "Compact Car" || vType === "경차") sizeId = 10;
       else if (vType === "Sedan" || vType === "Sports Car" || ["소형차", "준중형차", "중형차", "대형차", "스포츠카"].includes(vType)) sizeId = 2;
@@ -160,12 +160,13 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
     const msg = `Hello, I want to book this vehicle:
       *Vehicle Name*: ${vName}
       *VIN/Vehicle No*: ${vNo}
+      *Vehicle Type*: ${vType}
       *Country*: ${countryName}
       *Port*: ${portName}
       *Shipping Type*: ${chargeName}
       *Vehicle Price*: ${format(vehiclePriceVal)}
-      *Shipping Cost*: ${format(shippingCostVal)}
-      *Estimated Total*: ${format(totalCostVal)}
+      *Shipping Cost*: ${chargeName ? format(shippingCostVal) : "-"}
+      *Estimated Total*: ${chargeName ? format(totalCostVal) : "-"}
       *Vehicle ID*: ${vId}
       *URL*: ${window.location.href}`;
 
@@ -252,7 +253,7 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
               </li>
               <li className="d-flex justify-content-between align-items-center pt-3" style={{ fontSize: '15px', borderTop: '1px dashed #cbd5e1' }}>
                 <span className="text-dark fw-bold">Estimated Total</span>
-                <strong className="fw-bold fs-5" style={{ color: '#405FF2' }}>{shippingCost > 0 ? format(totalCostVal) : displayPrice}</strong>
+                <strong className="fw-bold fs-5" style={{ color: '#405FF2' }}>{shippingCost > 0 ? format(totalCostVal) : '-'}</strong>
               </li>
             </ul>
           </div>
