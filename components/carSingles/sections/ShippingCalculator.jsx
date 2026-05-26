@@ -154,12 +154,14 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
     const chargeName = shippingTypes.find(c => c.id == selectedShippingId)?.size || "";
 
     const vName = vehicleItem?.name || "Vehicle Name";
-    const vNo = vehicleItem?.vin || vehicleItem?.vehicle_no || "-";
+    const vin = vehicleItem?.vin || "-";
+    const vNo = vehicleItem?.vehicle_no || "-";
     const vId = vehicleItem?.id || "-";
 
     const msg = `Hello, I want to book this vehicle:
       *Vehicle Name*: ${vName}
-      *VIN/Vehicle No*: ${vNo}
+      *VIN*: ${vin}
+      *Vehicle No*: ${vNo}
       *Vehicle Type*: ${vType}
       *Country*: ${countryName}
       *Port*: ${portName}

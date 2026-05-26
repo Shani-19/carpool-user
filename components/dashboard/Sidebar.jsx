@@ -86,6 +86,13 @@ const menuItems = [
     label: "My Profile",
   },
   {
+    href: "/balance-sheet",
+    src: "/images/icons/dash2.svg",
+    width: 22,
+    height: 22,
+    label: "Balance Sheet",
+  },
+  {
     href: "",
     src: "/images/icons/dash8.svg",
     width: 18,

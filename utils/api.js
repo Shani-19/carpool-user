@@ -59,6 +59,11 @@ export const orderAPI = {
   getMyReserved: (query = '') => api.get(`/my-reserved${query}`),
 };
 
+export const balanceSheetAPI = {
+  getBalanceSheet: (page = 1) => api.get(`/balance-sheet`, { params: { page } }),
+  getAllBalanceSheet: () => api.get(`/balance-sheet`, { params: { all: true } }),
+};
+
 
 
 
