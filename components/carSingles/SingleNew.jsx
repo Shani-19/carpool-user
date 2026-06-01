@@ -6,10 +6,12 @@ import Link from "next/link";
 import RelatedCars from "./RelatedCars";
 import { Gallery, Item } from "react-photoswipe-gallery";
 import ModalVideo from "react-modal-video";
-import Financing from "./sections/Financing";
+import ShippingCalculator from "./sections/ShippingCalculator";
 import { api } from "@/utils/api";
 import { useAuth } from "@/context/AuthContext";
-
+import { usePathname } from "next/navigation";
+import { isFavourite, toggleFavourite } from "@/utils/favourites";
+import ShareModal from "../common/ShareModal";
 // Helper to format numbers
 const fmtNumber = (val) => {
   const n = Number(val);
@@ -79,7 +81,25 @@ export default function SingleNew({ carItem, relatedCars = [] }) {
 
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [isOpen, setOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+
+  const pathname = usePathname();
+  const urlType = pathname?.split('/').filter(Boolean)[0] || 'cars';
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    if (carItem?.slug) {
+      setIsFav(isFavourite(carItem.slug, urlType));
+    }
+  }, [carItem?.slug, urlType]);
+
+  const handleFavourite = (e) => {
+    e.preventDefault();
+    if (!carItem) return;
+    const newState = toggleFavourite(carItem, urlType);
+    setIsFav(newState);
+  };
 
   useEffect(() => {
     if (carItem?.vin) {
@@ -229,16 +249,16 @@ export default function SingleNew({ carItem, relatedCars = [] }) {
 
           <div className="content-box">
             <div className="btn-box">
-              <div className="share-btn">
+              <div className="share-btn" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }} style={{ cursor: 'pointer' }}>
                 <span>Share</span>
-                <a href="#" className="share">
+                <a href="#" className="share" onClick={(e) => e.preventDefault()}>
                   <img src="/images/resource/share.svg" alt="" />
                 </a>
               </div>
-              <div className="share-btn">
-                <span>Save</span>
-                <a href="#" className="share">
-                  <img src="/images/resource/share1-1.svg" alt="" />
+              <div className="share-btn" onClick={handleFavourite} style={{ cursor: 'pointer' }}>
+                <span style={{ color: isFav ? '#405FF2' : 'inherit' }}>{isFav ? 'Favourited' : 'Favourite'}</span>
+                <a href="#" className="share" onClick={(e) => e.preventDefault()}>
+                  <img src={isFav ? "/images/resource/favourite-1.svg" : "/images/resource/favourite.svg"} alt="" style={{ filter: isFav ? 'invert(27%) sepia(51%) saturate(2878%) hue-rotate(225deg) brightness(104%) contrast(97%)' : 'none' }} width={18} height={18} />
                 </a>
               </div>
             </div>
@@ -690,7 +710,7 @@ export default function SingleNew({ carItem, relatedCars = [] }) {
               </div>
 
               <div className="form-box v2 mt-4">
-                <Financing />
+                <ShippingCalculator vehicleItem={carItem} displayPrice={carItem?.final_price || carItem?.price} />
               </div>
 
               {!hasReport && (
@@ -758,6 +778,7 @@ export default function SingleNew({ carItem, relatedCars = [] }) {
         videoId={carItem?.embed_code || "7e90gBu4pas"}
         onClose={() => setOpen(false)}
       />
+      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} vehicleData={carItem} />
 
       {showRequestModal && (
         <div

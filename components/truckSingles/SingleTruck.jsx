@@ -1,12 +1,17 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Slider from "react-slick";
 import Image from "next/image";
 import Link from "next/link";
 import RelatedTrucks from "./RelatedTrucks";
 import { Gallery, Item } from "react-photoswipe-gallery";
 import ModalVideo from "react-modal-video";
-import Financing from "../carSingles/sections/Financing";
+import ShippingCalculator from "../carSingles/sections/ShippingCalculator";
+import { api } from "@/utils/api";
+import { useAuth } from "@/context/AuthContext";
+import { usePathname } from "next/navigation";
+import { isFavourite, toggleFavourite } from "@/utils/favourites";
+import ShareModal from "../common/ShareModal";
 
 // Helper to format numbers
 const fmtNumber = (val) => {
@@ -61,9 +66,120 @@ const PhotoItem = ({ original, thumbnail, children }) => {
 };
 
 export default function SingleTruck({ truckItem, relatedTrucks = [] }) {
+  const { user } = useAuth();
+  const [reportCode, setReportCode] = useState(null);
+  const [hasReport, setHasReport] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(true);
+  const [reportWarningMsg, setReportWarningMsg] = useState(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [modalFormData, setModalFormData] = useState({
+    remarks: ""
+  });
+  const [modalSubmitting, setModalSubmitting] = useState(false);
+  const [modalSuccessMsg, setModalSuccessMsg] = useState("");
+  const [modalErrorMsg, setModalErrorMsg] = useState("");
+
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [isOpen, setOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+
+  const pathname = usePathname();
+  const urlType = pathname?.split('/').filter(Boolean)[0] || 'trucks';
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    if (truckItem?.slug) {
+      setIsFav(isFavourite(truckItem.slug, urlType));
+    }
+  }, [truckItem?.slug, urlType]);
+
+  const handleFavourite = (e) => {
+    e.preventDefault();
+    if (!truckItem) return;
+    const newState = toggleFavourite(truckItem, urlType);
+    setIsFav(newState);
+  };
+
+  useEffect(() => {
+    if (truckItem?.vin) {
+      setLoadingReport(true);
+      api.post('/report-check', { vin: truckItem.vin })
+        .then(res => {
+          if (res.data && res.data.success) {
+            setHasReport(true);
+            setReportCode(res.data.code);
+            setReportWarningMsg(null);
+          } else if (res.data && res.data.warning) {
+            setHasReport(false);
+            setReportCode(null);
+            setReportWarningMsg(res.data.message);
+          } else {
+            setHasReport(false);
+            setReportCode(null);
+            setReportWarningMsg(null);
+          }
+        })
+        .catch(err => {
+          console.error("Error checking VIN report status:", err);
+          setHasReport(false);
+          setReportCode(null);
+          setReportWarningMsg(null);
+        })
+        .finally(() => {
+          setLoadingReport(false);
+        });
+    } else {
+      setHasReport(false);
+      setReportCode(null);
+      setReportWarningMsg(null);
+      setLoadingReport(false);
+    }
+  }, [truckItem?.vin]);
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!user) {
+      setModalErrorMsg("User not authenticated");
+      return;
+    }
+
+    setModalSubmitting(true);
+    setModalSuccessMsg("");
+    setModalErrorMsg("");
+
+    const payload = {
+      vin: truckItem?.vin || "",
+      url: typeof window !== "undefined" ? window.location.href : "",
+      plate_no: truckItem?.plate_no || "",
+      remarks: modalFormData.remarks
+    };
+
+    try {
+      const res = await api.post('/carpool-request', payload);
+      if (res.data?.success) {
+        setModalSuccessMsg(res.data.message || "Inspection Request submitted successfully");
+        setReportWarningMsg("Inspection Request is Pending");
+        setTimeout(() => {
+          setShowRequestModal(false);
+          setModalSuccessMsg("");
+          setModalFormData({ remarks: "" });
+        }, 3000);
+      } else {
+        setModalErrorMsg(res.data?.message || "Failed to submit request. Please try again.");
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      if (err.response?.data?.message) {
+        setModalErrorMsg(err.response.data.message);
+      } else {
+        setModalErrorMsg("Sorry, There is an error on server!");
+      }
+    } finally {
+      setModalSubmitting(false);
+    }
+  };
 
   const images = truckItem?.images?.length > 0 ? truckItem.images : [truckItem?.main_image || "/images/resource/inventory1-6.png"];
   const imageBase = process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_S3 || "https://media.carpoolkr.com/assets/car/cars";
@@ -133,16 +249,16 @@ export default function SingleTruck({ truckItem, relatedTrucks = [] }) {
 
           <div className="content-box">
             <div className="btn-box">
-              <div className="share-btn">
+              <div className="share-btn" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }} style={{ cursor: 'pointer' }}>
                 <span>Share</span>
-                <a href="#" className="share">
+                <a href="#" className="share" onClick={(e) => e.preventDefault()}>
                   <img src="/images/resource/share.svg" alt="" />
                 </a>
               </div>
-              <div className="share-btn">
-                <span>Save</span>
-                <a href="#" className="share">
-                  <img src="/images/resource/share1-1.svg" alt="" />
+              <div className="share-btn" onClick={handleFavourite} style={{ cursor: 'pointer' }}>
+                <span style={{ color: isFav ? '#405FF2' : 'inherit' }}>{isFav ? 'Favourited' : 'Favourite'}</span>
+                <a href="#" className="share" onClick={(e) => e.preventDefault()}>
+                  <img src={isFav ? "/images/resource/favourite-1.svg" : "/images/resource/favourite.svg"} alt="" style={{ filter: isFav ? 'invert(27%) sepia(51%) saturate(2878%) hue-rotate(225deg) brightness(104%) contrast(97%)' : 'none' }} width={18} height={18} />
                 </a>
               </div>
             </div>
@@ -292,12 +408,21 @@ export default function SingleTruck({ truckItem, relatedTrucks = [] }) {
                 <h4 className="title">Description</h4>
                 <div className="text" dangerouslySetInnerHTML={{ __html: truckItem?.description || "No description available." }} />
                 <ul className="des-list">
-                  <li>
-                    <a href="#" className="item">
-                      <img src="/images/resource/book1-1.svg" alt="" />
-                      View Vin Report
-                    </a>
-                  </li>
+                  {hasReport && (
+                    <li>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(`https://inspection.carpoolkr.com/inspection-report-show-qr/${reportCode}`, "", "width=1400,height=695");
+                        }}
+                        className="item"
+                      >
+                        <img src="/images/resource/book1-1.svg" alt="" />
+                        Inspection Report
+                      </a>
+                    </li>
+                  )}
                   <li className="two">
                     <a href="#" className="item">
                       <img src="/images/resource/book1-2.svg" alt="" />
@@ -355,8 +480,7 @@ export default function SingleTruck({ truckItem, relatedTrucks = [] }) {
                           { label: "Gears", value: truckItem?.gears },
                           { label: "Cylinders", value: truckItem?.no_of_cylinder },
                           { label: "Engine Power", value: truckItem?.engine_power },
-                          { label: "Engine No", value: truckItem?.engine_no },
-                          { label: "Port Size", value: truckItem?.port_size ? `${truckItem.port_size} ft` : null },
+                          { label: "Engine No", value: truckItem?.engine_no }
                         ].filter(spec => spec.value !== null && spec.value !== undefined && spec.value !== "").map((spec, idx) => (
                           <div
                             key={idx}
@@ -559,8 +683,62 @@ export default function SingleTruck({ truckItem, relatedTrucks = [] }) {
               </div>
 
               <div className="form-box v2 mt-4">
-                <Financing />
+                <ShippingCalculator vehicleItem={truckItem} displayPrice={truckItem?.final_price || truckItem?.price} />
               </div>
+
+              {!hasReport && (
+                <div className="mt-3" style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => reportWarningMsg ? null : (user ? setShowRequestModal(true) : null)}
+                    className="theme-btn btn-style-one w-100"
+                    disabled={!!reportWarningMsg}
+                    style={{
+                      background: reportWarningMsg ? '#6c757d' : '#405FF2',
+                      color: '#fff',
+                      padding: '14px 20px',
+                      borderRadius: '10px',
+                      fontWeight: '700',
+                      fontSize: '15px',
+                      border: 'none',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 14px rgba(64, 95, 242, 0.2)',
+                      filter: (!user && !reportWarningMsg) ? 'blur(3px)' : 'none',
+                      pointerEvents: (!user || reportWarningMsg) ? 'none' : 'auto',
+                      opacity: (!user && !reportWarningMsg) ? 0.8 : (reportWarningMsg ? 0.6 : 1)
+                    }}
+                  >
+                    {reportWarningMsg || "Request An Inspection"}
+                  </button>
+
+                  {!user && !reportWarningMsg && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      zIndex: 2
+                    }}>
+                      <Link href="/login" style={{
+                        background: 'rgba(5, 11, 32, 0.85)',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        textDecoration: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                      }}>
+                        Sign In / Sign Up
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -573,6 +751,128 @@ export default function SingleTruck({ truckItem, relatedTrucks = [] }) {
         videoId={truckItem?.embed_code || "7e90gBu4pas"}
         onClose={() => setOpen(false)}
       />
+      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} vehicleData={truckItem} />
+
+      {showRequestModal && (
+        <div
+          className="modal d-block show"
+          tabIndex="-1"
+          role="dialog"
+          style={{
+            backgroundColor: 'rgba(5, 11, 32, 0.6)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 1050
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '500px' }}>
+            <div
+              className="modal-content border-0 shadow-lg rounded-4 overflow-hidden"
+              style={{ background: '#fff' }}
+            >
+              {/* Header */}
+              <div
+                className="modal-header px-4 py-3 border-0 d-flex justify-content-between align-items-center"
+                style={{
+                  background: 'linear-gradient(135deg, #405FF2 0%, #2b40a6 100%)',
+                  color: '#fff'
+                }}
+              >
+                <h5 className="modal-title fw-bold text-white mb-0" style={{ fontSize: '18px' }}>
+                  Request Vehicle Inspection
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white border-0 bg-transparent text-white fs-4"
+                  onClick={() => setShowRequestModal(false)}
+                  aria-label="Close"
+                  style={{ opacity: 0.8, cursor: 'pointer' }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="modal-body p-4">
+                <p className="text-muted mb-3" style={{ fontSize: '14px', lineHeight: '1.5' }}>
+                  Please confirm your details and vehicle information to request a professional inspection report for <strong>{truckItem?.name}</strong>.
+                </p>
+
+                <div className="bg-light p-3 rounded-3 mb-4" style={{ fontSize: '13px', border: '1px solid #e2e8f0' }}>
+                  <div className="row g-3">
+                    <div className="col-12 col-md-6">
+                      <h6 className="fw-bold mb-2 text-primary" style={{ fontSize: '14px' }}>User Details</h6>
+                      <div className="d-flex flex-column gap-1">
+                        <div><span className="text-muted">Name:</span> <strong className="text-dark">{user?.name || "-"}</strong></div>
+                        <div><span className="text-muted">Phone:</span> <strong className="text-dark">{user?.mobile || user?.phone || "-"}</strong></div>
+                        <div><span className="text-muted">Email:</span> <strong className="text-dark">{user?.email || "-"}</strong></div>
+                        <div><span className="text-muted">Country:</span> <strong className="text-dark">{user?.country || "-"}</strong></div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <h6 className="fw-bold mb-2 text-primary" style={{ fontSize: '14px' }}>Vehicle Details</h6>
+                      <div className="d-flex flex-column gap-1">
+                        <div><span className="text-muted">VIN:</span> <strong className="text-dark">{truckItem?.vin || "-"}</strong></div>
+                        <div><span className="text-muted">Plate:</span> <strong className="text-dark">{truckItem?.plate_no || "-"}</strong></div>
+                        <div><span className="text-muted">Transmission:</span> <strong className="text-dark">{truckItem?.transmission || "-"}</strong></div>
+                        <div><span className="text-muted">Type:</span> <strong className="text-dark">{truckItem?.vehicle_type || truckItem?.category || "-"}</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {modalSuccessMsg && (
+                  <div className="alert alert-success border-0 rounded-3 mb-3 d-flex align-items-center" style={{ backgroundColor: '#ecfdf5', color: '#065f46' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>{modalSuccessMsg}</span>
+                  </div>
+                )}
+
+                {modalErrorMsg && (
+                  <div className="alert alert-danger border-0 rounded-3 mb-3 d-flex align-items-center" style={{ backgroundColor: '#fef2f2', color: '#991b1b' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>{modalErrorMsg}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleModalSubmit}>
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold text-dark mb-1" style={{ fontSize: '13px' }}>Remarks (Optional)</label>
+                    <textarea
+                      className="form-control border p-3 rounded-3"
+                      value={modalFormData.remarks}
+                      onChange={(e) => setModalFormData({ ...modalFormData, remarks: e.target.value })}
+                      placeholder="Add any optional notes here..."
+                      rows="4"
+                      style={{ fontSize: '14px', borderColor: '#e2e8f0', resize: 'none' }}
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={modalSubmitting}
+                    className="theme-btn btn-style-one w-100 py-3"
+                    style={{
+                      background: '#405FF2',
+                      color: '#fff',
+                      borderRadius: '10px',
+                      fontWeight: '700',
+                      fontSize: '15px',
+                      border: 'none',
+                      boxShadow: '0 4px 12px rgba(64, 95, 242, 0.2)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {modalSubmitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Submitting...
+                      </>
+                    ) : "Submit Request"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

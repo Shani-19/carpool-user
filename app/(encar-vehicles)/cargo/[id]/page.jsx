@@ -4,6 +4,35 @@ import Footer from "@/components/footers/Footer";
 import EncarSingle from "@/components/carSingles/EncarSingle";
 import { getEncarVehicleDetail, normalizeEncarDetail } from "@/utils/vehicles/encarAPI";
 
+const getMetaDescription = (car, baseDesc) => {
+  if (!car) return "";
+  const specs = [];
+  if (car.vin) specs.push(`VIN: ${car.vin}`);
+  const vehicleNo = car.plate_no || car.vehicle_no;
+  if (vehicleNo) specs.push(`Vehicle No: ${vehicleNo}`);
+  if (car.vehicle_type || car.category) specs.push(`Type: ${car.vehicle_type || car.category}`);
+  if (car.engine_volume) specs.push(`Engine: ${car.engine_volume}${typeof car.engine_volume === 'number' || !car.engine_volume.toString().toLowerCase().includes('cc') ? 'cc' : ''}`);
+  if (car.transmission || car.transmission_type) specs.push(`Transmission: ${car.transmission || car.transmission_type}`);
+  if (car.odometer || car.mileage) {
+    const miles = car.odometer || car.mileage;
+    specs.push(`Mileage: ${typeof miles === 'number' ? miles.toLocaleString() : miles} km`);
+  }
+  if (car.color) specs.push(`Color: ${car.color}`);
+  if (car.drive_type) specs.push(`Drive: ${car.drive_type}`);
+
+  const tags = [];
+  const status = car.status === 'sale' ? 'Used' : (car.status || 'Used');
+  tags.push(status);
+  if (car.steering) tags.push(car.steering);
+  if (car.fuel_type) tags.push(car.fuel_type);
+  if (car.passenger) tags.push(`${car.passenger} Passengers`);
+
+  const specStr = specs.join(', ');
+  const tagStr = tags.length > 0 ? `(${tags.join(', ')})` : '';
+
+  return [tagStr, specStr, baseDesc].filter(Boolean).join(' | ');
+};
+
 export async function generateMetadata({ params }) {
   const { id } = params;
   if (!id) return { title: "Vehicle Not Found" };
@@ -18,8 +47,14 @@ export async function generateMetadata({ params }) {
   }
   
   const ogTitle = `${carItem.name} - CarPool Korea`;
-  const ogDesc = carItem.description || `Explore this ${carItem.make_name} ${carItem.model_name} at CarPool Korea.`;
-  const mainImg = carItem.main_image || "/images/resource/inventory1-6.png";
+  const baseDesc = carItem.description || `Explore this ${carItem.make_name} ${carItem.model_name} at CarPool Korea.`;
+  const ogDesc = getMetaDescription(carItem, baseDesc);
+  const featuredPhoto = carItem.photos &&
+    (carItem.photos.find(p => p.code === '001') || carItem.photos[0]);
+  const rawImage = (featuredPhoto && featuredPhoto.path) || "/images/resource/inventory1-6.png";
+  const mainImg = rawImage.startsWith('http') || rawImage.startsWith('/')
+    ? rawImage
+    : `https://ci.encar.com${rawImage}`;
 
   return {
     title: ogTitle,
@@ -30,8 +65,6 @@ export async function generateMetadata({ params }) {
       images: [
         {
           url: mainImg,
-          width: 800,
-          height: 600,
           alt: carItem.name,
         },
       ],

@@ -10,54 +10,56 @@ import RelatedEncarCars from "./RelatedEncarCars";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/utils/api";
-
+import { usePathname } from "next/navigation";
+import { isFavourite, toggleFavourite } from "@/utils/favourites";
+import ShareModal from "../common/ShareModal";
 const areaMap = {
-    'Seoul': '서울', 'Busan': '부산', 'Incheon': '인천', 'Daegu': '대구', 'Daejeon': '대전',
-    'Gwangju': '광주', 'Ulsan': '울산', 'Sejong': '세종', 'Suwon': '수원', 'Seongnam': '성남',
-    'Goyang': '고양', 'Yongin': '용인', 'Bucheon': '부천', 'Ansan': '안산', 'Anyang': '안양',
-    'Namyangju': '남양주', 'Hwaseong': '화성', 'Pyeongtaek': '평택', 'Uijeongbu': '의정부',
-    'Siheung': '시흥', 'Paju': '파주', 'Gwangmyeong': '광명', 'Gunpo': '군포', 'Icheon': '이천',
-    'Yangju': '양주', 'Osan': '오산', 'Guri': '구리', 'Anseong': '안성', 'Uiwang': '의왕',
-    'Hanam': '하남', 'Dongducheon': '동두천', 'Gwacheon': '과천', 'Yeoju': '여주',
-    'Chuncheon': '춘천', 'Wonju': '원주', 'Gangneung': '강릉', 'Donghae': '동해',
-    'Taebaek': '태백', 'Sokcho': '속초', 'Samcheok': '삼척', 'Cheongju': '청주',
-    'Chungju': '충주', 'Jecheon': '제천', 'Cheonan': '천안', 'Asan': '아산',
-    'Boryeong': '보령', 'Nonsan': '논산', 'Gyeryong': '계룡', 'Dangjin': '당진',
-    'Seosan': '서산', 'Jeonju': '전주', 'Iksan': '익산', 'Gunsan': '군산',
-    'Jeongeup': '정읍', 'Namwon': '남원', 'Gimje': '김제', 'Mokpo': '목포',
-    'Yeosu': '여수', 'Suncheon': '순천', 'Naju': '나주', 'Gwangyang': '광양',
-    'Pohang': '포항', 'Gyeongju': '경주', 'Gimcheon': '김천', 'Andong': '안동',
-    'Gumi': '구미', 'Yeongju': '영주', 'Yeongcheon': '영천', 'Sangju': '상주',
-    'Mungyeong': '문경', 'Changwon': '창원', 'Jinju': '진주', 'Tongyeong': '통영',
-    'Sacheon': '사천', 'Gimhae': '김해', 'Miryang': '밀양', 'Geoje': '거제',
-    'Yangsan': '양산', 'Jeju City': '제주시', 'Seogwipo': '서귀포', 'Gwangju (Gyeonggi)': '광주'
+  'Seoul': '서울', 'Busan': '부산', 'Incheon': '인천', 'Daegu': '대구', 'Daejeon': '대전',
+  'Gwangju': '광주', 'Ulsan': '울산', 'Sejong': '세종', 'Suwon': '수원', 'Seongnam': '성남',
+  'Goyang': '고양', 'Yongin': '용인', 'Bucheon': '부천', 'Ansan': '안산', 'Anyang': '안양',
+  'Namyangju': '남양주', 'Hwaseong': '화성', 'Pyeongtaek': '평택', 'Uijeongbu': '의정부',
+  'Siheung': '시흥', 'Paju': '파주', 'Gwangmyeong': '광명', 'Gunpo': '군포', 'Icheon': '이천',
+  'Yangju': '양주', 'Osan': '오산', 'Guri': '구리', 'Anseong': '안성', 'Uiwang': '의왕',
+  'Hanam': '하남', 'Dongducheon': '동두천', 'Gwacheon': '과천', 'Yeoju': '여주',
+  'Chuncheon': '춘천', 'Wonju': '원주', 'Gangneung': '강릉', 'Donghae': '동해',
+  'Taebaek': '태백', 'Sokcho': '속초', 'Samcheok': '삼척', 'Cheongju': '청주',
+  'Chungju': '충주', 'Jecheon': '제천', 'Cheonan': '천안', 'Asan': '아산',
+  'Boryeong': '보령', 'Nonsan': '논산', 'Gyeryong': '계룡', 'Dangjin': '당진',
+  'Seosan': '서산', 'Jeonju': '전주', 'Iksan': '익산', 'Gunsan': '군산',
+  'Jeongeup': '정읍', 'Namwon': '남원', 'Gimje': '김제', 'Mokpo': '목포',
+  'Yeosu': '여수', 'Suncheon': '순천', 'Naju': '나주', 'Gwangyang': '광양',
+  'Pohang': '포항', 'Gyeongju': '경주', 'Gimcheon': '김천', 'Andong': '안동',
+  'Gumi': '구미', 'Yeongju': '영주', 'Yeongcheon': '영천', 'Sangju': '상주',
+  'Mungyeong': '문경', 'Changwon': '창원', 'Jinju': '진주', 'Tongyeong': '통영',
+  'Sacheon': '사천', 'Gimhae': '김해', 'Miryang': '밀양', 'Geoje': '거제',
+  'Yangsan': '양산', 'Jeju City': '제주시', 'Seogwipo': '서귀포', 'Gwangju (Gyeonggi)': '광주'
 };
 
 const areaToAdminMapping = {
-    // Tasadaq Raja (ID: 31)
-    'Suwon': 31, 'Yongin': 31, 'Ansan': 31, 'Anyang': 31, 
-    'Hwaseong': 31, 'Pyeongtaek': 31, 'Siheung': 31, 'Gunpo': 31, 
-    'Icheon': 31, 'Osan': 31, 'Cheonan': 31, 'Asan': 31, 'Boryeong': 31, 'Nonsan': 31,
+  // Tasadaq Raja (ID: 31)
+  'Suwon': 31, 'Yongin': 31, 'Ansan': 31, 'Anyang': 31,
+  'Hwaseong': 31, 'Pyeongtaek': 31, 'Siheung': 31, 'Gunpo': 31,
+  'Icheon': 31, 'Osan': 31, 'Cheonan': 31, 'Asan': 31, 'Boryeong': 31, 'Nonsan': 31,
 
-    // Ahmad Afzal (ID: 29)
-    'Seoul': 29, 'Incheon': 29, 'Seongnam': 29, 'Goyang': 29, 'Bucheon': 29, 'Namyangju': 29, 
-    'Uijeongbu': 29, 'Paju': 29, 'Gwangmyeong': 29, 'Yangju': 29, 'Guri': 29, 
-    'Anseong': 29, 'Uiwang': 29, 'Hanam': 29, 'Dongducheon': 29, 'Gwacheon': 29,
+  // Ahmad Afzal (ID: 29)
+  'Seoul': 29, 'Incheon': 29, 'Seongnam': 29, 'Goyang': 29, 'Bucheon': 29, 'Namyangju': 29,
+  'Uijeongbu': 29, 'Paju': 29, 'Gwangmyeong': 29, 'Yangju': 29, 'Guri': 29,
+  'Anseong': 29, 'Uiwang': 29, 'Hanam': 29, 'Dongducheon': 29, 'Gwacheon': 29,
 
-    // Mr Jong (ID: 37)
-    'Busan': 37, 'Daegu': 37, 'Gwangju': 37, 'Ulsan': 37, 'Yeoju': 37, 
-    'Chuncheon': 37, 'Wonju': 37, 'Gangneung': 37, 'Donghae': 37, 'Taebaek': 37, 
-    'Sokcho': 37, 'Samcheok': 37, 'Seosan': 37, 'Jeonju': 37, 'Iksan': 37, 
-    'Gunsan': 37, 'Jeongeup': 37, 'Namwon': 37, 'Gimje': 37, 'Mokpo': 37, 
-    'Yeosu': 37, 'Suncheon': 37, 'Naju': 37, 'Gwangyang': 37, 'Pohang': 37, 
-    'Gyeongju': 37, 'Gimcheon': 37, 'Andong': 37, 'Gumi': 37, 'Yeongju': 37, 
-    'Yeongcheon': 37, 'Sangju': 37, 'Mungyeong': 37, 'Changwon': 37, 'Jinju': 37, 
-    'Tongyeong': 37, 'Sacheon': 37, 'Gimhae': 37, 'Miryang': 37, 'Geoje': 37, 
-    'Yangsan': 37, 'Jeju City': 37, 'Seogwipo': 37, 'Gwangju (Gyeonggi)': 37,
+  // Mr Jong (ID: 37)
+  'Busan': 37, 'Daegu': 37, 'Gwangju': 37, 'Ulsan': 37, 'Yeoju': 37,
+  'Chuncheon': 37, 'Wonju': 37, 'Gangneung': 37, 'Donghae': 37, 'Taebaek': 37,
+  'Sokcho': 37, 'Samcheok': 37, 'Seosan': 37, 'Jeonju': 37, 'Iksan': 37,
+  'Gunsan': 37, 'Jeongeup': 37, 'Namwon': 37, 'Gimje': 37, 'Mokpo': 37,
+  'Yeosu': 37, 'Suncheon': 37, 'Naju': 37, 'Gwangyang': 37, 'Pohang': 37,
+  'Gyeongju': 37, 'Gimcheon': 37, 'Andong': 37, 'Gumi': 37, 'Yeongju': 37,
+  'Yeongcheon': 37, 'Sangju': 37, 'Mungyeong': 37, 'Changwon': 37, 'Jinju': 37,
+  'Tongyeong': 37, 'Sacheon': 37, 'Gimhae': 37, 'Miryang': 37, 'Geoje': 37,
+  'Yangsan': 37, 'Jeju City': 37, 'Seogwipo': 37, 'Gwangju (Gyeonggi)': 37,
 
-    // Dr Ehsan Mirza (ID: 36)
-    'Daejeon': 36, 'Sejong': 36, 'Cheongju': 36, 'Chungju': 36, 'Jecheon': 36, 
-    'Gyeryong': 36, 'Dangjin': 36
+  // Dr Ehsan Mirza (ID: 36)
+  'Daejeon': 36, 'Sejong': 36, 'Cheongju': 36, 'Chungju': 36, 'Jecheon': 36,
+  'Gyeryong': 36, 'Dangjin': 36
 };
 
 // Helper to format numbers
@@ -114,8 +116,26 @@ export default function EncarSingle({ carItem }) {
 
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [isOpen, setOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const { currency, format, convert } = useCurrency();
+
+  const pathname = usePathname();
+  const urlType = pathname?.split('/').filter(Boolean)[0] || 'domestic';
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    if (carItem?.id) {
+      setIsFav(isFavourite(carItem.id, urlType));
+    }
+  }, [carItem?.id, urlType]);
+
+  const handleFavourite = (e) => {
+    e.preventDefault();
+    if (!carItem) return;
+    const newState = toggleFavourite(carItem, urlType);
+    setIsFav(newState);
+  };
 
   useEffect(() => {
     if (carItem?.vin) {
@@ -155,7 +175,7 @@ export default function EncarSingle({ carItem }) {
 
   const handleModalSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user) {
       setModalErrorMsg("User not authenticated");
       return;
@@ -167,7 +187,7 @@ export default function EncarSingle({ carItem }) {
 
     let area = "";
     let assign_person = "";
-    
+
     if (carItem?.dealer?.address) {
       for (const [englishName, koreanName] of Object.entries(areaMap)) {
         if (carItem.dealer.address.includes(koreanName)) {
@@ -177,11 +197,11 @@ export default function EncarSingle({ carItem }) {
         }
       }
     }
-    
+
     // Fallback if not found
     if (!area) {
-        area = "Seoul";
-        assign_person = 29;
+      area = "Seoul";
+      assign_person = 29;
     }
 
     const payload = {
@@ -306,16 +326,16 @@ export default function EncarSingle({ carItem }) {
 
             <div className="content-box">
               <div className="btn-box">
-                <div className="share-btn">
+                <div className="share-btn" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }} style={{ cursor: 'pointer' }}>
                   <span>Share</span>
-                  <a href="#" className="share">
+                  <a href="#" className="share" onClick={(e) => e.preventDefault()}>
                     <img src="/images/resource/share.svg" alt="" />
                   </a>
                 </div>
-                <div className="share-btn">
-                  <span>Save</span>
-                  <a href="#" className="share">
-                    <img src="/images/resource/share1-1.svg" alt="" />
+                <div className="share-btn" onClick={handleFavourite} style={{ cursor: 'pointer' }}>
+                  <span style={{ color: isFav ? '#405FF2' : 'inherit' }}>{isFav ? 'Favourited' : 'Favourite'}</span>
+                  <a href="#" className="share" onClick={(e) => e.preventDefault()}>
+                    <img src={isFav ? "/images/resource/favourite-1.svg" : "/images/resource/favourite.svg"} alt="" style={{ filter: isFav ? 'invert(27%) sepia(51%) saturate(2878%) hue-rotate(225deg) brightness(104%) contrast(97%)' : 'none' }} width={18} height={18} />
                   </a>
                 </div>
               </div>
@@ -659,29 +679,30 @@ export default function EncarSingle({ carItem }) {
           videoId={"7e90gBu4pas"}
           onClose={() => setOpen(false)}
         />
+        <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} vehicleData={carItem} />
       </section>
       <RelatedEncarCars carId={carItem?.id} />
 
       {showRequestModal && (
-        <div 
-          className="modal d-block show" 
+        <div
+          className="modal d-block show"
           tabIndex="-1"
           role="dialog"
-          style={{ 
-            backgroundColor: 'rgba(5, 11, 32, 0.6)', 
+          style={{
+            backgroundColor: 'rgba(5, 11, 32, 0.6)',
             backdropFilter: 'blur(10px)',
-            zIndex: 1050 
+            zIndex: 1050
           }}
         >
           <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '500px' }}>
-            <div 
-              className="modal-content border-0 shadow-lg rounded-4 overflow-hidden" 
+            <div
+              className="modal-content border-0 shadow-lg rounded-4 overflow-hidden"
               style={{ background: '#fff' }}
             >
               {/* Header */}
-              <div 
+              <div
                 className="modal-header px-4 py-3 border-0 d-flex justify-content-between align-items-center"
-                style={{ 
+                style={{
                   background: 'linear-gradient(135deg, #405FF2 0%, #2b40a6 100%)',
                   color: '#fff'
                 }}
@@ -689,9 +710,9 @@ export default function EncarSingle({ carItem }) {
                 <h5 className="modal-title fw-bold text-white mb-0" style={{ fontSize: '18px' }}>
                   Request Vehicle Inspection
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close btn-close-white border-0 bg-transparent text-white fs-4" 
+                <button
+                  type="button"
+                  className="btn-close btn-close-white border-0 bg-transparent text-white fs-4"
                   onClick={() => setShowRequestModal(false)}
                   aria-label="Close"
                   style={{ opacity: 0.8, cursor: 'pointer' }}

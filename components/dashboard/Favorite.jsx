@@ -1,123 +1,273 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Image from "next/image";
-import { cars } from "@/data/cars";
 import Link from "next/link";
-import Pagination from "../common/Pagination";
+import { getFavourites, toggleFavourite } from "@/utils/favourites";
+import { api } from "@/utils/api";
+import { getEncarVehiclesByIds, normalizeEncarDetail } from "@/utils/vehicles/encarAPI";
+import { useCurrency } from "@/context/CurrencyContext";
+
 export default function Favorite() {
+  const [activeTab, setActiveTab] = useState("carpool");
+  const [carpoolStock, setCarpoolStock] = useState([]);
+  const [otherStock, setOtherStock] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { currency, format, convert } = useCurrency();
+
+  // Helper to format numbers
+  const fmtNumber = (val) => {
+    const n = Number(val);
+    if (Number.isNaN(n)) return "0";
+    return n.toLocaleString("en-US");
+  };
+
+  const fetchFavourites = async () => {
+    setLoading(true);
+    try {
+      if (activeTab === "carpool") {
+        const favs = getFavourites("carpool");
+        const cars = favs.filter(f => f.type === 'cars').map(f => f.slug);
+        const trucks = favs.filter(f => f.type === 'trucks').map(f => f.slug);
+        const buses = favs.filter(f => f.type === 'buses').map(f => f.slug);
+
+        const payload = { cars, trucks, buses, page: 1, per_page: 50 };
+
+        if (cars.length > 0 || trucks.length > 0 || buses.length > 0) {
+          const res = await api.post('/favourite-list', payload);
+          if (res.data?.success && res.data?.vehicles) {
+            setCarpoolStock(res.data.vehicles);
+          } else {
+            setCarpoolStock([]);
+          }
+        } else {
+          setCarpoolStock([]);
+        }
+      } else {
+        const favs = getFavourites("encar");
+        const otherIds = favs.map(f => f.id);
+
+        if (otherIds.length > 0) {
+          const vehicles = await getEncarVehiclesByIds(otherIds);
+          const normalized = vehicles.map(v => normalizeEncarDetail(v)).filter(v => v !== null);
+          setOtherStock(normalized);
+        } else {
+          setOtherStock([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching favourites:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFavourites();
+  }, [activeTab]);
+
+  const handleRemove = (item, type, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavourite(item, type);
+    // Remove locally without refetch
+    if (activeTab === "carpool") {
+      setCarpoolStock(prev => prev.filter(c => c.slug !== item.slug && c.id !== item.id));
+    } else {
+      setOtherStock(prev => prev.filter(c => String(c.id) !== String(item.id)));
+    }
+  };
+
+  const renderCarpoolCard = (car, index) => {
+    let routePrefix = "/cars";
+    let urlType = "cars";
+    let imgPath = process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/car/cars";
+
+    if (car.slug?.startsWith('TRUCK') || car.vehicle_type === 'truck') {
+      routePrefix = "/trucks";
+      urlType = "trucks";
+      imgPath = process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/car/cars";
+    } else if (car.slug?.startsWith('BUS') || car.vehicle_type === 'bus') {
+      routePrefix = "/buses";
+      urlType = "buses";
+      imgPath = process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/car/cars";
+    }
+
+    const mainImage = car.main_image ? `${imgPath}${car.main_image}` : "/images/resource/inventory1-6.png";
+    const brandName = car.make?.name || "Unknown";
+    const modelName = car.model?.name || "Unknown";
+    const year = car.model_year || car.year || "Unknown";
+
+    return (
+      <a
+        key={`${car.id}-${index}`}
+        className="mb-booking-details"
+        href={`${routePrefix}/${car.slug || car.id}`}
+        target="_blank"
+      >
+        <div className="car-card position-relative">
+          <div className="mb-info-box">
+            <div className="car-image">
+              <Image
+                src={mainImage}
+                alt={modelName}
+                width={180}
+                height={120}
+                className="rounded"
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+            <div className="car-info">
+              <h4 className="car-title">
+                {year}, {brandName}, {modelName}
+              </h4>
+              <p className="vin">Chassis No. {car.vin}</p>
+              <p className="mb-details">
+                {car.transmission ? car.transmission : ''}
+                {car.fuel?.name ? ' | ' + car.fuel.name : ''}
+                {car.drive_type ? ' | ' + car.drive_type : ''}
+                {car.type?.name ? ' | ' + car.type.name : ''}
+                {car.passenger ? ` | ${car.passenger} Seats` : ''}
+              </p>
+              <p className="mb-details mt-2">
+                {car.engine_volume && <span className="badge bg-light text-danger me-1 fw-normal">{car.engine_volume} CC</span>}
+                {car.odometer && <span className="badge bg-light text-danger me-1 fw-normal">{fmtNumber(car.odometer)} Km</span>}
+              </p>
+            </div>
+          </div>
+          <div className="mb-card-right-box d-flex flex-column justify-content-center align-items-end pe-3">
+            <button
+              className="btn btn-outline-danger btn-sm"
+              onClick={(e) => handleRemove(car, urlType, e)}
+            >
+              <i className="fa fa-trash me-1"></i> Remove
+            </button>
+          </div>
+        </div>
+      </a>
+    );
+  };
+
+  const renderOtherCard = (car, index) => {
+
+    return (
+      <a
+        key={`${car.id}-${index}`}
+        className="mb-booking-details"
+        href={`/domestic/${car.id}`}
+        target="_blank"
+      >
+        <div className="car-card position-relative">
+          <div className="mb-info-box">
+            <div className="car-image">
+              <Image
+                src={car.main_image || "/images/resource/inventory1-6.png"}
+                alt={car.name || "Vehicle"}
+                width={180}
+                height={120}
+                className="rounded"
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+            <div className="car-info">
+              <h4 className="car-title">
+                {car.year || ""}, {car.make_name || ""}, {car.model_name || ""}
+              </h4>
+              <p className="vin">Chassis No. {car.vin || "Unknown"}</p>
+              <p className="mb-details">
+                {car.transmission ? car.transmission : ''}
+                {car.fuel_type ? ' | ' + car.fuel_type : ''}
+                {car.drive_type ? ' | ' + car.drive_type : ''}
+                {car.vehicle_type ? ' | ' + car.vehicle_type : ''}
+                {car.passenger ? ` | ${car.passenger} Seats` : ''}
+              </p>
+              <p className="mb-details mt-2">
+                {car.engine_volume > 0 && <span className="badge bg-light text-danger me-1 fw-normal">{car.engine_volume} CC</span>}
+                {car.odometer > 0 && <span className="badge bg-light text-danger me-1 fw-normal">{fmtNumber(car.odometer)} Km</span>}
+              </p>
+            </div>
+          </div>
+          <div className="mb-card-right-box d-flex flex-column justify-content-center align-items-end pe-3">
+            <button
+              className="btn btn-outline-danger btn-sm"
+              onClick={(e) => handleRemove(car, "domestic", e)}
+            >
+              <i className="fa fa-trash me-1"></i> Remove
+            </button>
+          </div>
+        </div>
+      </a>
+    );
+  };
+
   return (
-    <section className="dashboard-widget-two">
+    <section className="dashboard-widget">
       <div className="right-box">
         <Sidebar />
-        <div className="right-box-two">
-          <div className="title-box">
-            <h3 className="title">My Favorites</h3>
-            <span>Lorem ipsum dolor sit amet, consectetur.</span>
-          </div>
-          {/* cars-section-three */}
-          <div className="cars-section-four">
-            <div className="row wow fadeInUp">
-              {/* car-block-four */}
+        <div className="content-column">
+          <div className="inner-column">
+            <div className="list-title">
+              <h3 className="title">My Favorites</h3>
+              <div className="text">Manage your saved vehicles here.</div>
+            </div>
 
-              {cars.slice(0, 8).map((car) => (
-                <div key={car.id} className="car-block-four col-xl-3 col-md-6">
-                  <div className="inner-box">
-                    <div className={car.imgBoxClass}>
-                      <figure className="image">
-                        <Link href={`/inventory-page-single-v1/${car.id}`}>
-                          <Image
-                            alt={car.alt}
-                            src={car.imgSrc}
-                            width={329}
-                            height={220}
-                          />
-                        </Link>
-                      </figure>
-                      {car.icon && <span>{car.icon}</span>}
-                      <a className="icon-box">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={12}
-                          height={12}
-                          viewBox="0 0 12 12"
-                          fill="none"
-                        >
-                          <g clipPath="url(#clip0_601_1274)">
-                            <path
-                              d="M9.39062 12C9.15156 12 8.91671 11.9312 8.71128 11.8009L6.11794 10.1543C6.04701 10.1091 5.95296 10.1096 5.88256 10.1543L3.28869 11.8009C2.8048 12.1082 2.13755 12.0368 1.72722 11.6454C1.47556 11.4047 1.33685 11.079 1.33685 10.728V1.2704C1.33738 0.570053 1.90743 0 2.60778 0H9.39272C10.0931 0 10.6631 0.570053 10.6631 1.2704V10.728C10.6631 11.4294 10.0925 12 9.39062 12ZM6.00025 9.06935C6.24193 9.06935 6.47783 9.13765 6.68169 9.26743L9.27503 10.9135C9.31233 10.9371 9.35069 10.9487 9.39114 10.9487C9.48046 10.9487 9.61286 10.8788 9.61286 10.728V1.2704C9.61233 1.14956 9.51356 1.05079 9.39272 1.05079H2.60778C2.48642 1.05079 2.38817 1.14956 2.38817 1.2704V10.728C2.38817 10.7911 2.41023 10.8436 2.45384 10.8851C2.52582 10.9539 2.63563 10.9708 2.72599 10.9135L5.31934 9.2669C5.52267 9.13765 5.75857 9.06935 6.00025 9.06935Z"
-                              fill="black"
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_601_1274">
-                              <rect width={12} height={12} fill="white" />
-                            </clipPath>
-                          </defs>
-                        </svg>
-                      </a>
-                    </div>
-                    <div className="content-box">
-                      <h6 className="title">
-                        <Link href={`/inventory-page-single-v1/${car.id}`}>
-                          {car.title}
-                        </Link>
-                      </h6>
-                      <div className="text">{car.description}</div>
-                      <ul>
-                        <li>
-                          <i className="flaticon-gasoline-pump" /> {car.mileage}
-                        </li>
-                        <li>
-                          <i className="flaticon-speedometer" /> {car.fuel}
-                        </li>
-                        <li>
-                          <i className="flaticon-gearbox" /> {car.transmission}
-                        </li>
-                      </ul>
-                      <div className="btn-box">
-                        <span>{car.price}</span>
-                        <small>{car.discountPrice}</small>
-                        <Link
-                          href={`/inventory-page-single-v1/${car.id}`}
-                          className="details"
-                        >
-                          {car.btnDetails}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={14}
-                            height={14}
-                            viewBox="0 0 14 14"
-                            fill="none"
-                          >
-                            <g clipPath="url(#clip0_601_4346)">
-                              <path
-                                d="M13.6109 0H5.05533C4.84037 0 4.66643 0.173943 4.66643 0.388901C4.66643 0.603859 4.84037 0.777802 5.05533 0.777802H12.6721L0.113697 13.3362C-0.0382246 13.4881 -0.0382246 13.7342 0.113697 13.8861C0.18964 13.962 0.289171 14 0.388666 14C0.488161 14 0.587656 13.962 0.663635 13.8861L13.222 1.3277V8.94447C13.222 9.15943 13.3959 9.33337 13.6109 9.33337C13.8259 9.33337 13.9998 9.15943 13.9998 8.94447V0.388901C13.9998 0.173943 13.8258 0 13.6109 0Z"
-                                fill="#405FF2"
-                              />
-                            </g>
-                            <defs>
-                              <clipPath id="clip0_601_4346">
-                                <rect width={14} height={14} />
-                              </clipPath>
-                            </defs>
-                          </svg>
-                        </Link>
-                      </div>
+            <div className="my-listing-table wrap-listing myBookingSec">
+              <div className="cart-table">
+                <div className="nav-scroll-x">
+                  <ul className="nav nav-tabs mb-tabs" role="tablist">
+                    <li className="nav-item" role="presentation">
+                      <button
+                        onClick={() => setActiveTab('carpool')}
+                        className={`nav-link ${activeTab === 'carpool' ? 'active' : ''}`}
+                        type="button"
+                      >
+                        Carpool Stock
+                      </button>
+                    </li>
+                    <li className="nav-item" role="presentation">
+                      <button
+                        onClick={() => setActiveTab('other')}
+                        className={`nav-link ${activeTab === 'other' ? 'active' : ''}`}
+                        type="button"
+                      >
+                        Other Stock
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="tab-content">
+                  <div className="tab-pane fade show active">
+                    <div className="car-list">
+                      {loading ? (
+                        <div className="text-center py-5">
+                          <div className="spinner-border text-primary" role="status"></div>
+                        </div>
+                      ) : (
+                        <>
+                          {activeTab === 'carpool' && carpoolStock.length === 0 && (
+                            <div className="text-center py-5 text-muted">
+                              <h5>No Carpool Stock favourited yet</h5>
+                            </div>
+                          )}
+                          {activeTab === 'other' && otherStock.length === 0 && (
+                            <div className="text-center py-5 text-muted">
+                              <h5>No Other Stock favourited yet</h5>
+                            </div>
+                          )}
+
+                          {activeTab === 'carpool' && carpoolStock.map((car, index) => renderCarpoolCard(car, index))}
+                          {activeTab === 'other' && otherStock.map((car, index) => renderOtherCard(car, index))}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="pagination-sec">
-              <nav aria-label="Page navigation example">
-                <ul className="pagination">
-                  <Pagination />
-                </ul>
-                <div className="text">Showing results 1-30 of 1,415</div>
-              </nav>
+
+              </div>
             </div>
           </div>
-          {/* End shop section two */}
         </div>
       </div>
     </section>

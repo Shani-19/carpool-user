@@ -289,6 +289,17 @@ export const normalizeEncarDetail = (data) => {
     const isLowPrice = typeof originalPrice === 'number' && originalPrice < 500;
     const finalPrice = typeof originalPrice === 'number' ? originalPrice + 44 : originalPrice;
 
+    const photo001 = rawPhotos.find(p => String(p?.code || p?.Code || "") === "001");
+    let mainImage = "/images/resource/inventory1-6.png";
+    if (photo001) {
+        const loc = photo001.path || photo001.Path || photo001.location || photo001.Location;
+        if (loc) {
+            mainImage = loc.startsWith('http') ? loc : `${imgBase}${loc}${imgParams}`;
+        }
+    } else if (images.length > 0) {
+        mainImage = images[0];
+    }
+
     const carItem = {
         id: data.vehicleId || data.VehicleId || "",
         name: `${detail.formYear || ''} ${detail.manufacturerEnglishName || detail.manufacturerName || ''} ${detail.modelGroupEnglishName || detail.modelGroupName || ''} ${detail.gradeEnglishName || detail.gradeName || ''}`.trim(),
@@ -302,7 +313,7 @@ export const normalizeEncarDetail = (data) => {
         price: finalPrice,
         isLowPrice,
         images: images,
-        main_image: images[0] || "/images/resource/inventory1-6.png",
+        main_image: mainImage,
         odometer: spec.mileage || spec.Mileage || 0,
         vehicle_type: vehicleTypeMap[spec.bodyName || spec.BodyName] || spec.bodyName || spec.BodyName || "",
         description: adver.description || adver.Description || "",

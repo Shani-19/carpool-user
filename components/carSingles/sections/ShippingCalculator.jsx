@@ -79,12 +79,15 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
 
       // Fallback to raw spec.bodyName if vehicle_type isn't properly normalized
 
-      if (vType === "Compact Car" || vType === "경차") sizeId = 10;
-      else if (vType === "Sedan" || vType === "Sports Car" || ["소형차", "준중형차", "중형차", "대형차", "스포츠카"].includes(vType)) sizeId = 2;
-      else if (vType === "SUV" || vType === "RV" || ["SUV", "RV"].includes(vType)) sizeId = 4;
-      else if (vType === "Mini Van" || vType === "Van / Minibus" || ["경승합차", "승합차"].includes(vType)) sizeId = 5;
-      else if (vType === "Truck" || vType === "화물차") sizeId = 6;
-      else if (vehicleItem?.port_size_id) sizeId = vehicleItem.port_size_id;
+      if (vehicleItem?.port_size) {
+        sizeId = vehicleItem.port_size;
+      } else {
+        if (vType === "Compact Car" || vType === "경차") sizeId = 10;
+        else if (vType === "Sedan" || vType === "Sports Car" || ["소형차", "준중형차", "중형차", "대형차", "스포츠카"].includes(vType)) sizeId = 2;
+        else if (vType === "SUV" || vType === "RV" || ["SUV", "RV"].includes(vType)) sizeId = 4;
+        else if (vType === "Mini Van" || vType === "Van / Minibus" || ["경승합차", "승합차"].includes(vType)) sizeId = 5;
+        else if (vType === "Truck" || vType === "화물차") sizeId = 6;
+      }
 
       const res = await authAPI.getPortCharges({
         country_id: countryId,
@@ -143,10 +146,20 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
     }
   };
 
-  // Compute final values dynamically based on current selected currency
-  const vehiclePriceVal = vehicleItem?.price ? (convert(vehicleItem.price * 10000, "KRW") + (vehicleItem.isLowPrice ? convert(300, "USD") : 0)) : 0;
-  const shippingCostVal = convert(shippingCost, "USD");
-  const totalCostVal = vehiclePriceVal + shippingCostVal;
+  let vehiclePriceVal, shippingCostVal, totalCostVal;
+  if (vehicleItem?.port_size) {
+
+    vehiclePriceVal = vehicleItem?.price;
+    shippingCostVal = convert(shippingCost, "USD");
+    totalCostVal = vehiclePriceVal + shippingCostVal;
+
+  } else {
+    // Compute final values dynamically based on current selected currency
+    vehiclePriceVal = vehicleItem?.price ? (convert(vehicleItem.price * 10000, "KRW") + (vehicleItem.isLowPrice ? convert(300, "USD") : 0)) : 0;
+    shippingCostVal = convert(shippingCost, "USD");
+    totalCostVal = vehiclePriceVal + shippingCostVal;
+
+  }
 
   const handleBookNow = () => {
     const countryName = countries.find(c => c.id == selectedCountryId)?.name || "";
@@ -247,7 +260,7 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
             <ul className="mb-0" style={{ padding: 0, listStyle: 'none' }}>
               <li className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: '14px' }}>
                 <span className="text-secondary">Vehicle Price</span>
-                <strong className="text-dark fs-6">{displayPrice}</strong>
+                <strong className="text-dark fs-6">{format(displayPrice)}</strong>
               </li>
               <li className="d-flex justify-content-between align-items-center mb-3" style={{ fontSize: '14px' }}>
                 <span className="text-secondary">Shipping Cost</span>
