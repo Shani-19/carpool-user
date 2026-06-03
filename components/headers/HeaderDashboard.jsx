@@ -63,10 +63,13 @@ export default function HeaderDashboard() {
           <span className="top-header-divider">|</span>
 
           {isAuthenticated && isClient ? (
-
-            <Link href={`/dashboard`} className="top-header-auth">
-              Welcome, {user?.name || 'User'}
-            </Link>
+            <>
+              <span className="top-header-label">Welcome, {user?.name || 'User'}</span>
+              <span className="top-header-divider">|</span>
+              <Link href={`/dashboard`} className="top-header-auth">
+                My Dashboard
+              </Link>
+            </>
           ) : (
             <>
               <span>Welcome Guest</span>

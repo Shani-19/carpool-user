@@ -193,10 +193,9 @@ export default function Nav() {
           </button>
         </div>
 
-        {/* ===== Maira Edit START -- Cars Mega Menu ===== */}
-        <style>{`
-          /* Edited by Maira — compact single-row item: tighter padding, gap, and line-height;
-             width:100% + box-sizing + position:relative keep hover state inside the column */
+        {/* ===== Maira Edit START: Nav+Hero Fix ===== */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
           .cars-mega-link {
             display: flex;
             align-items: center;
@@ -219,7 +218,6 @@ export default function Nav() {
             color: #b91c1c;
             transform: translateX(2px);
           }
-          /* Edited by Maira — single-line ellipsis so each row stays compact and on one horizontal line */
           .cars-mega-label {
             flex: 1;
             min-width: 0;
@@ -257,13 +255,10 @@ export default function Nav() {
             padding-bottom: 8px;
             border-bottom: 1px solid #e5e7eb;
           }
-          /* Edited by Maira — fixed-height scroll column with thin, soft scrollbar; tightened to 250px to keep mega menu compact */
           .cars-mega-scroll {
             list-style: none;
             margin: 0;
             padding: 0 6px 0 0;
-            max-height: 250px;
-            overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: #e5e7eb transparent;
           }
@@ -280,7 +275,6 @@ export default function Nav() {
           .cars-mega-scroll::-webkit-scrollbar-thumb:hover {
             background: #d1d5db;
           }
-          /* Edited by Maira — keep each li bound to its column width and own stacking context */
           .cars-mega-scroll li {
             margin-bottom: 4px;
             width: 100%;
@@ -289,25 +283,30 @@ export default function Nav() {
           .cars-mega-scroll li:last-child {
             margin-bottom: 0;
           }
-        `}</style>
+        ` }} />
+        {/* ===== Maira Edit END: Nav+Hero Fix ===== */}
         <ul className="dropdown" style={{ padding: 0, margin: 0, listStyle: "none" }}>
           <li style={{ padding: 0 }}>
+            {/* ===== Maira Edit START: Nav+Hero Fix ===== */}
             <div style={{
               display: "flex",
               flexDirection: "row",
               gap: 0,
               padding: "28px 34px",
-              /* Edited by Maira — wider card so columns breathe and long names wrap cleanly */
-              width: "950px",
+              width: "fit-content",
+              maxWidth: "95vw",
+              right: 0,
+              left: "auto",
               boxSizing: "border-box",
               background: "#ffffff",
               borderRadius: "12px",
               boxShadow: "0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
               border: "1px solid #f0f0f0",
-              /* Edited by Maira — cap mega menu height + clip hover overflow inside the card */
-              maxHeight: "40vh",
-              overflow: "hidden",
+              maxHeight: "420px",
+              overflowY: "auto",
+              overflowX: "hidden",
             }}>
+              {/* ===== Maira Edit END: Nav+Hero Fix ===== */}
 
               {/* Column 1: Make */}
               {/* Edited by Maira — dynamic makes from getFilterOptions; click writes { make } and goes to /cars */}

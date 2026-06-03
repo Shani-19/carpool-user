@@ -50,12 +50,29 @@ export default function Login() {
     setRegisterErrors({});
     setRegisterSuccess(false);
 
+    // ===== Edited by Maira START =====
+    if (registerData.password !== registerData.password_confirmation) {
+      setRegisterErrors({
+        password_confirmation: "Passwords do not match"
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const sanitizedMobile = String(registerData.mobile).replace(/\D/g, "");
+    // ===== Edited by Maira END =====
+
     try {
-      const response = await authAPI.register(registerData);
+      // ===== Edited by Maira START =====
+      const response = await authAPI.register({
+        ...registerData,
+        mobile: sanitizedMobile,
+      });
+      // ===== Edited by Maira END =====
 
       if (response.status === 201) {
         setRegisterSuccess(true);
-        
+
         setRegisterData({
           name: '',
           username: '',
@@ -77,6 +94,12 @@ export default function Login() {
         Object.keys(validationErrors).forEach(key => {
           formattedErrors[key] = validationErrors[key][0];
         });
+
+        // ===== Edited by Maira START =====
+        if (error.response.data?.message) {
+          formattedErrors.general = error.response.data.message;
+        }
+        // ===== Edited by Maira END =====
 
         setRegisterErrors(formattedErrors);
       } else {
@@ -136,13 +159,36 @@ const router = useRouter();
 
         setUser(userData);
 
+        /* ===== Maira Edit START: Booking Page Redesign ===== */
+        const redirectParam = typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("redirect")
+          : null;
+        const destination =
+          redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+            ? redirectParam
+            : "/dashboard";
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = destination;
         }, 100);
+        /* ===== Maira Edit END ===== */
       }
     } catch (error) {
       if (error.response) {
-        setLoginErrors({ general: error.response.data.message });
+        // ===== Edited by Maira START =====
+        const status = error.response.status;
+        const data = error.response.data || {};
+        if (status === 422 && data.errors && typeof data.errors === 'object') {
+          const messages = Object.values(data.errors)
+            .flat()
+            .filter(Boolean);
+          const combined = messages.length
+            ? messages.join(' ')
+            : (data.message || 'Validation failed.');
+          setLoginErrors({ general: combined });
+        } else {
+          setLoginErrors({ general: data.message || 'Login failed. Please try again.' });
+        }
+        // ===== Edited by Maira END =====
       } else if (error.request) {
         setLoginErrors({ general: 'Network error. Please try again.' });
       } else {
@@ -320,6 +366,7 @@ const isDisabled = !isChecked || isLoading;
 
                     <div className="form_boxes">
                       <label>Password</label>
+                      {/* ===== Edited by Maira START ===== */}
                       <input
                         required
                         type="password"
@@ -327,12 +374,17 @@ const isDisabled = !isChecked || isLoading;
                         value={registerData.password}
                         onChange={handleRegisterChange}
                         placeholder="Your Password"
+                        minLength={8}
+                        maxLength={15}
                       />
+                      <div style={{ color: '#6c757d', fontSize: '12px', marginTop: '4px' }}>8–15 characters required</div>
+                      {/* ===== Edited by Maira END ===== */}
                       {registerErrors.password && <div style={{ color: 'red', fontSize: '12px' }}>{registerErrors.password}</div>}
                     </div>
 
                     <div className="form_boxes">
                       <label>Re-type Password</label>
+                      {/* ===== Edited by Maira START ===== */}
                       <input
                         required
                         type="password"
@@ -340,7 +392,11 @@ const isDisabled = !isChecked || isLoading;
                         value={registerData.password_confirmation}
                         onChange={handleRegisterChange}
                         placeholder="Re-type Your Password"
+                        minLength={8}
+                        maxLength={15}
                       />
+                      {registerErrors.password_confirmation && <div style={{ color: 'red', fontSize: '12px' }}>{registerErrors.password_confirmation}</div>}
+                      {/* ===== Edited by Maira END ===== */}
                     </div>
 
                     <div className="form_boxes">
@@ -358,14 +414,16 @@ const isDisabled = !isChecked || isLoading;
 
                     <div className="form_boxes">
                       <label>WhatsApp Number</label>
+                      {/* ===== Edited by Maira START ===== */}
                       <input
                         required
-                        type="number"
+                        type="tel"
                         name="wa_no"
                         value={registerData.wa_no}
                         onChange={handleRegisterChange}
-                        placeholder="WhatsApp no with country code (+821094860472)"
+                        placeholder="+821094860472"
                       />
+                      {/* ===== Edited by Maira END ===== */}
                       {registerErrors.wa_no && <div style={{ color: 'red', fontSize: '12px' }}>{registerErrors.wa_no}</div>}
                     </div>
 

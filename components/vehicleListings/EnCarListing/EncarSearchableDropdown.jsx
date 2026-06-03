@@ -93,7 +93,14 @@ const EncarSearchableDropdown = ({
                             visibility: "visible",
                             transition: "0.4s",
                             padding: '0',
-                            overflow: 'hidden',
+                            /* ===== Maira Edit START: Dropdown Clipping Root Fix ===== */
+                            /* Override global .drop-menu .dropdown rule in style.css that
+                               forced max-height: 144px and overflow-y: auto, clipping the
+                               dropdown and producing a second scrollbar over the inner <ul>. */
+                            maxHeight: 'none',
+                            overflow: 'visible',
+                            overflowY: 'visible',
+                            /* ===== Maira Edit END: Dropdown Clipping Root Fix ===== */
                             borderRadius: '8px',
                             boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
                             zIndex: 100
@@ -136,13 +143,16 @@ const EncarSearchableDropdown = ({
                 )}
 
                 {/* List */}
+                {/* ===== Maira Edit START: Dropdown Height Fix v2 ===== */}
+                {/* maxHeight increased to 400px */}
+                {/* ===== Maira Edit END: Dropdown Height Fix v2 ===== */}
                 <ul
                     className="custom-scrollbar"
                     style={{
                         listStyle: 'none',
                         padding: 0,
                         margin: 0,
-                        maxHeight: '250px',
+                        maxHeight: '400px',
                         overflowY: 'auto',
                         scrollbarWidth: 'thin'
                     }}

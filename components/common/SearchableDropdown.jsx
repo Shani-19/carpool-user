@@ -57,9 +57,11 @@ const SearchableDropdown = ({
         style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
         title={selectedOption || placeholder}
       >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '5px' }}>
+        {/* ===== Maira Edit START: Nav+Hero Fix ===== */}
+        <span style={{ whiteSpace: 'nowrap', marginRight: '5px' }}>
           {selectedOption || placeholder}
         </span>
+        {/* ===== Maira Edit END: Nav+Hero Fix ===== */}
         <i className={`fa ${isDropdownOpen ? "fa-angle-up" : "fa-angle-down"}`} style={{ flexShrink: 0 }} />
       </div>
 
@@ -73,7 +75,14 @@ const SearchableDropdown = ({
               visibility: "visible",
               transition: "0.4s",
               padding: '0',
-              overflow: 'hidden',
+              /* ===== Maira Edit START: Dropdown Clipping Root Fix ===== */
+              /* Override global .drop-menu .dropdown rule in style.css that
+                 forced max-height: 144px and overflow-y: auto, clipping the
+                 dropdown and producing a second scrollbar over the inner <ul>. */
+              maxHeight: 'none',
+              overflow: 'visible',
+              overflowY: 'visible',
+              /* ===== Maira Edit END: Dropdown Clipping Root Fix ===== */
               borderRadius: '8px',
               boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
               zIndex: 100
@@ -116,13 +125,16 @@ const SearchableDropdown = ({
         )}
 
         {/* List */}
+        {/* ===== Maira Edit START: Dropdown Height Fix v2 ===== */}
+        {/* maxHeight increased to 400px */}
+        {/* ===== Maira Edit END: Dropdown Height Fix v2 ===== */}
         <ul
           className="custom-scrollbar"
           style={{
             listStyle: 'none',
             padding: 0,
             margin: 0,
-            maxHeight: '250px',
+            maxHeight: '400px',
             overflowY: 'auto',
             scrollbarWidth: 'thin'
           }}

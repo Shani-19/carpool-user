@@ -5033,11 +5033,18 @@ Section Title
   }
 }
 
+/* ===== Maira Edit START: 02-06-2026 Nav+Hero Fix ===== */
 .boxcar-banner-section-v1 .banner-content .form-tab-pane form .form_boxes {
+  /* ===== Maira Edit START: Hero Dropdown Width ===== */
+  min-width: 200px;
+  /* ===== Maira Edit END: Hero Dropdown Width ===== */
   width: 25%;
   height: 76px;
   /* Small devices */
 }
+
+/* ===== Maira Edit END: Nav+Hero Fix ===== */
+
 
 @media (max-width: 767px) {
   .boxcar-banner-section-v1 .banner-content .form-tab-pane form .form_boxes {
@@ -19563,9 +19570,9 @@ Chat Widget
   background-color: var(--theme-color-light);
 }
 
-.contact-us-section .map-sec {
+/* .contact-us-section .map-sec {
   margin: 0 -152px;
-}
+} */
 
 .contact-us-section .map-sec .goole-iframe iframe {
   width: 100%;

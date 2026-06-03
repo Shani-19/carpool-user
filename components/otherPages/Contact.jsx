@@ -1,9 +1,60 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { officeLocations } from "@/data/officeLocations ";
 import Link from "next/link";
+import Script from "next/script";
+import { api } from "@/utils/api";
+
 export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    title: "",
+    message: ""
+  });
+  const [status, setStatus] = useState({ type: "", message: "", errors: {} });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus({ type: "", message: "", errors: {} });
+
+    const recaptchaResponse = document.querySelector('#g-recaptcha-response')?.value;
+
+    if (!recaptchaResponse) {
+      setStatus({ type: "error", message: "Please complete the reCAPTCHA verification." });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await api.post("/contact-us", {
+        ...formData,
+        "g-recaptcha-response": recaptchaResponse
+      });
+
+      if (res.status === 201 || res.status === 200) {
+        setStatus({ type: "success", message: res.data.message });
+        setFormData({ name: "", email: "", title: "", message: "" });
+        if (window.grecaptcha) {
+          window.grecaptcha.reset();
+        }
+      }
+    } catch (error) {
+      if (error.response?.status === 422) {
+        setStatus({ type: "error", message: error.response.data.message, errors: error.response.data.errors || {} });
+      } else {
+        setStatus({ type: "error", message: error.response?.data?.error || "Something went wrong. Please try again later." });
+      }
+    }
+    setLoading(false);
+  };
   return (
     <section className="contact-us-section layout-radius">
       <div className="boxcar-container">
@@ -23,7 +74,7 @@ export default function Contact() {
         {/* map-sec */}
         <div className="map-sec">
           <div className="goole-iframe">
-            <iframe src="https://maps.google.com/maps?width=100%25&height=600&hl=en&q=1%20Grafton%20Street,%20Dublin,%20Ireland+(My%20Business%20Name)&t=&z=14&ie=UTF8&iwloc=B&output=embed"></iframe>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3156.357235664895!2d126.58838287537007!3d37.71129181581525!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357b7788f71d35df%3A0xfae9e628f5865367!2sCARPOOL%20KOREA!5e0!3m2!1sen!2s!4v1780472273672!5m2!1sen!2s" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         </div>
         {/* End map-section */}
@@ -41,26 +92,18 @@ export default function Contact() {
                       consequat mi non bibendum egestas quam egestas nulla.
                     </p>
                   </div>
-                  <form onSubmit={(e) => e.preventDefault()} className="row">
+                  <form onSubmit={handleSubmit} className="row">
                     <div className="col-lg-6">
                       <div className="form_boxes">
-                        <label>First Name</label>
+                        <label>Full Name</label>
                         <input
                           type="text"
                           required
                           name="name"
-                          placeholder="Ali"
-                        />
-                      </div>
-                    </div>
-                    <div className="col-lg-6">
-                      <div className="form_boxes">
-                        <label>Last Name</label>
-                        <input
-                          required
-                          type="text"
-                          name="last-name"
-                          placeholder="Tufan"
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="John Doe"
+                          maxLength={255}
                         />
                       </div>
                     </div>
@@ -71,36 +114,57 @@ export default function Contact() {
                           required
                           type="email"
                           name="email"
-                          placeholder="Creativelayers088@Gmail.Com"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="john@example.com"
                         />
+                        {status.errors?.email && <span className="text-danger" style={{ color: 'red', fontSize: '12px' }}>{status.errors.email[0]}</span>}
                       </div>
                     </div>
-                    <div className="col-lg-6">
+                    <div className="col-lg-12">
                       <div className="form_boxes">
-                        <label>Phone</label>
+                        <label>Title</label>
                         <input
                           required
-                          type="number"
-                          name="number"
-                          placeholder="+90 47458 27 3287 12"
+                          type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleChange}
+                          placeholder="Project Inquiry"
                         />
                       </div>
                     </div>
                     <div className="col-lg-12">
                       <div className="form_boxes v2">
-                        <label>Comment</label>
+                        <label>Message</label>
                         <textarea
                           name="message"
-                          placeholder="Lorem Ipsum Dolar Sit Amet"
+                          placeholder="I would like to discuss..."
                           required
+                          value={formData.message}
+                          onChange={handleChange}
                           style={{ color: "#000", width: "100%" }}
-                          defaultValue={""}
                         />
                       </div>
                     </div>
-                    <div className="form-submit">
-                      <button type="submit" className="theme-btn">
-                        Send Message
+
+                    <div className="col-lg-12 mb-4">
+                      <Script src="https://www.google.com/recaptcha/api.js" strategy="lazyOnload" />
+                      <div className="g-recaptcha" data-sitekey="6Leaf7seAAAAAC8Ctsbl3YuPXBT33X9XMqhh5Cjq"></div>
+                      {status.errors?.['g-recaptcha-response'] && <span className="text-danger" style={{ color: 'red', fontSize: '12px' }}>{status.errors['g-recaptcha-response'][0]}</span>}
+                    </div>
+
+                    {status.message && (
+                      <div className="col-lg-12 mb-3">
+                        <div style={{ color: status.type === 'success' ? 'green' : 'red', padding: '10px', border: `1px solid ${status.type === 'success' ? 'green' : 'red'}`, borderRadius: '4px' }}>
+                          {status.message}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="form-submit col-lg-12">
+                      <button type="submit" className="theme-btn" disabled={loading}>
+                        {loading ? 'Sending...' : 'Send Message'}
                         <Image
                           alt=""
                           width={14}
@@ -149,8 +213,8 @@ export default function Contact() {
                       Address
                     </h6>
                     <div className="text">
-                      329 Queensberry Street, North <br />
-                      Melbourne VIC3051, Australia.
+                      318, Wolha-ro, Tongjin-eup, <br />
+                      Gimpo-si, Gyeonggi-do, South Korea.
                     </div>
                   </div>
                   <div className="content-box">
@@ -179,7 +243,7 @@ export default function Contact() {
                       </span>
                       Email
                     </h6>
-                    <div className="text">ali@boxcars.com</div>
+                    <div className="text">sales@carpoolkr.com</div>
                   </div>
                   <div className="content-box">
                     <h6 className="title">
@@ -209,7 +273,7 @@ export default function Contact() {
                       </span>
                       Phone
                     </h6>
-                    <div className="text">+76 956 039 967</div>
+                    <div className="text">+82-31-981-0475</div>
                   </div>
                   <div className="social-icons">
                     <h6 className="title">Follow us</h6>

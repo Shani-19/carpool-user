@@ -6,7 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { orderAPI } from '@/utils/api';
 import { useAuth } from "@/context/AuthContext";
-
+import { Gallery, Item } from 'react-photoswipe-gallery';
+import 'photoswipe/dist/photoswipe.css';
+import axios from 'axios';
 
 export default function OrderDetailPage({ initialData, order_num: propOrderNum }) {
   const params = useParams();
@@ -22,6 +24,20 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState({ type: '', text: '' });
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Claim Form State
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [claimForm, setClaimForm] = useState({
+    cc: '',
+    description: '',
+    claim_amount: '',
+    ytvideo: '',
+    images: [],
+    videos: [],
+  });
+  const [claimUploading, setClaimUploading] = useState(false);
+  const [claimSubmitting, setClaimSubmitting] = useState(false);
+  const [claimMessage, setClaimMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (order_num && !orderData) {
@@ -129,6 +145,86 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
       setUploadMessage({ type: 'danger', text: errorMessage });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleClaimFileChange = async (e, type) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setClaimUploading(true);
+    setClaimMessage({ type: 'info', text: `Uploading ${type}...` });
+
+    try {
+      const updatedFiles = type === 'video' ? [...claimForm.videos] : [...claimForm.images];
+
+      for (const file of files) {
+        // Get Presigned URL
+        const presignRes = await fetch('/api/s3-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type,
+            type: type
+          })
+        });
+
+        if (!presignRes.ok) throw new Error('Failed to get upload URL');
+        const { presignedUrl, key } = await presignRes.json();
+
+        // Upload directly to S3
+        await axios.put(presignedUrl, file, {
+          headers: { 'Content-Type': file.type }
+        });
+
+        updatedFiles.push(key);
+      }
+
+      setClaimForm(prev => ({
+        ...prev,
+        [type === 'video' ? 'videos' : 'images']: updatedFiles
+      }));
+      setClaimMessage({ type: 'success', text: `${type === 'video' ? 'Video' : 'Image'} uploaded successfully!` });
+
+    } catch (error) {
+      console.error('S3 Upload Error:', error);
+      setClaimMessage({ type: 'danger', text: 'Error uploading file. Please try again.' });
+    } finally {
+      setClaimUploading(false);
+    }
+  };
+
+  const submitClaimData = async () => {
+    if (!claimForm.cc || !claimForm.description || !claimForm.claim_amount) {
+      setClaimMessage({ type: 'danger', text: 'Please fill in all required fields (CC, Description, Amount).' });
+      return;
+    }
+
+    setClaimSubmitting(true);
+    setClaimMessage({ type: 'info', text: 'Submitting claim...' });
+
+    try {
+      const payload = {
+        ...claimForm,
+        order_id: orderData.id,
+      };
+
+      const response = await orderAPI.submitClaim(payload);
+      if (response.data.success) {
+        setClaimMessage({ type: 'success', text: 'Claim submitted successfully!' });
+        setTimeout(() => {
+          setIsClaimModalOpen(false);
+          fetchOrderDetails();
+        }, 2000);
+      } else {
+        setClaimMessage({ type: 'danger', text: response.data.message || 'Submission failed.' });
+      }
+    } catch (error) {
+      console.error('Submit Claim Error:', error);
+      setClaimMessage({ type: 'danger', text: 'Failed to submit claim. Please try again.' });
+    } finally {
+      setClaimSubmitting(false);
     }
   };
 
@@ -254,6 +350,8 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
   const firstCe = allBookingFiles.find(bf => bf?.ce)?.ce || null;
 
   const shipInfo = orderData.ship || null;
+  const claimData = orderData.clm || orderData.claim || null;
+  const hasClaim = claimData && (!Array.isArray(claimData) || claimData.length > 0);
 
   const orderDocuments = [
     { label: 'Invoice', file: orderData.Invoice, route: '/order-invoice' },
@@ -302,11 +400,22 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
         <Sidebar />
         <div className="content-column">
           <div className="inner-column">
-            <div className="list-title">
-              <h3 className="title">Order Details</h3>
-              <div className="text">
-                This website is the most safe and convenient way for the deal through Carpool Korea.
+            <div className="list-title d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <h3 className="title">Order Details</h3>
+                <div className="text">
+                  This website is the most safe and convenient way for the deal through Carpool Korea.
+                </div>
               </div>
+              {!hasClaim && (
+                <div>
+                  <button
+                    onClick={() => setIsClaimModalOpen(true)}
+                    className="btn btn-outline-danger shadow-sm fw-bold">
+                    <i className="fa fa-exclamation-triangle me-2"></i> Report Claim
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="my-listing-table wrap-listing myBookingSec">
@@ -555,6 +664,19 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                   </div>
                 )}
 
+                {/* Claim Information Section */}
+                {hasClaim && (
+                  <div className="detail-sec mt-4">
+                    <div className="card-body mbd-top-card border-0 shadow-sm p-4">
+                      <div className="d-flex align-items-center mb-4">
+                        <i className="fa fa-exclamation-circle text-danger me-3 fs-4"></i>
+                        <h5 className="mb-0 fs-5 fw-bold">Claim Information</h5>
+                      </div>
+                      <ClaimInfoTable clm={claimData} order={orderData} />
+                    </div>
+                  </div>
+                )}
+
                 {/* Container Images Modal */}
                 {isContainerModalOpen && (
                   <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1050 }}>
@@ -703,6 +825,171 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                             disabled={uploading}
                           >
                             Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Claim Modal */}
+                {isClaimModalOpen && (
+                  <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1060, overflowY: 'auto' }}>
+                    <div className="modal-dialog modal-lg modal-dialog-centered my-5">
+                      <div className="modal-content border-0 shadow-lg overflow-hidden">
+                        <div className="modal-header border-0 bg-danger text-white px-4 py-3">
+                          <div className="d-flex align-items-center">
+                            <i className="fa fa-exclamation-triangle me-3 fs-5"></i>
+                            <h5 className="modal-title fw-bold text-white">Report a Claim</h5>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn-close btn-close-white"
+                            onClick={() => setIsClaimModalOpen(false)}
+                          ></button>
+                        </div>
+                        <div className="modal-body p-4 bg-light">
+                          {claimMessage.text && (
+                            <div className={`alert alert-${claimMessage.type} border-0 shadow-sm mb-4 py-3 px-4 small d-flex align-items-center`}>
+                              <i className={`fa ${claimMessage.type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} me-3 fs-5`}></i>
+                              <div>{claimMessage.text}</div>
+                            </div>
+                          )}
+
+                          <div className="row g-3">
+                            <div className="col-md-6">
+                              <label className="form-label small fw-bold text-muted mb-1">Title *</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="E.g., Claim Title"
+                                value={claimForm.cc}
+                                onChange={(e) => setClaimForm({ ...claimForm, cc: e.target.value })}
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label small fw-bold text-muted mb-1">Claim Amount (USD) *</label>
+                              <input
+                                type="number"
+                                className="form-control"
+                                placeholder="E.g., 2500"
+                                value={claimForm.claim_amount}
+                                onChange={(e) => setClaimForm({ ...claimForm, claim_amount: e.target.value })}
+                              />
+                            </div>
+                            <div className="col-12">
+                              <label className="form-label small fw-bold text-muted mb-1">Description *</label>
+                              <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="Describe the issue..."
+                                value={claimForm.description}
+                                onChange={(e) => setClaimForm({ ...claimForm, description: e.target.value })}
+                              ></textarea>
+                            </div>
+                            <div className="col-12">
+                              <label className="form-label small fw-bold text-muted mb-1">YouTube Video URL (Optional)</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="https://youtube.com/watch?v=..."
+                                value={claimForm.ytvideo}
+                                onChange={(e) => setClaimForm({ ...claimForm, ytvideo: e.target.value })}
+                              />
+                            </div>
+
+                            <div className="col-md-6">
+                              <label className="form-label small fw-bold text-muted mb-1">Images (Optional)</label>
+                              <div className="input-group mb-2">
+                                <input
+                                  type="file"
+                                  className="form-control"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => handleClaimFileChange(e, 'image')}
+                                  disabled={claimUploading}
+                                />
+                              </div>
+                              {claimForm.images.length > 0 && (
+                                <div className="p-2 bg-white rounded border shadow-sm">
+                                  <Gallery>
+                                    <div className="d-flex flex-wrap gap-2">
+                                      {claimForm.images.map((imgKey, idx) => {
+                                        const imgUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://img.carpoolkr.com'}/${imgKey}`;
+                                        return (
+                                          <Item
+                                            key={idx}
+                                            original={imgUrl}
+                                            thumbnail={imgUrl}
+                                            width="800"
+                                            height="600"
+                                          >
+                                            {({ ref, open }) => (
+                                              <img
+                                                ref={ref}
+                                                onClick={open}
+                                                src={imgUrl}
+                                                style={{ width: '60px', height: '60px', objectFit: 'cover', cursor: 'pointer', borderRadius: '4px' }}
+                                                alt="Claim Preview"
+                                              />
+                                            )}
+                                          </Item>
+                                        );
+                                      })}
+                                    </div>
+                                  </Gallery>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="col-md-6">
+                              <label className="form-label small fw-bold text-muted mb-1">Videos (Optional)</label>
+                              <div className="input-group mb-2">
+                                <input
+                                  type="file"
+                                  className="form-control"
+                                  accept="video/*"
+                                  multiple
+                                  onChange={(e) => handleClaimFileChange(e, 'video')}
+                                  disabled={claimUploading}
+                                />
+                              </div>
+                              {claimForm.videos.length > 0 && (
+                                <div className="p-2 bg-white rounded border shadow-sm">
+                                  <div className="d-flex flex-wrap gap-2">
+                                    {claimForm.videos.map((vidKey, idx) => (
+                                      <div key={idx} className="bg-light px-2 py-1 rounded small border text-truncate" style={{ maxWidth: '100%' }}>
+                                        <i className="fa fa-video me-2 text-danger"></i>
+                                        {vidKey.split('/').pop()}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="modal-footer border-0 p-4 bg-white d-flex flex-column flex-sm-row gap-2 justify-content-end">
+                          <button
+                            className="btn btn-link text-muted py-2 text-decoration-none"
+                            onClick={() => setIsClaimModalOpen(false)}
+                            disabled={claimSubmitting || claimUploading}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="btn btn-danger py-2 px-4 fw-bold shadow-sm text-white"
+                            onClick={submitClaimData}
+                            disabled={claimSubmitting || claimUploading}
+                          >
+                            {claimSubmitting ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Submitting...
+                              </>
+                            ) : (
+                              'Submit Claim'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -918,6 +1205,132 @@ function ShippingInfoTable({ ship }) {
         </table>
       </div>
     </>
+  );
+}
+
+// ─── Claim Info Table ────────────────────────────────────────────────────────
+function ClaimInfoTable({ clm, order }) {
+  if (!clm || (Array.isArray(clm) && clm.length === 0)) return null;
+  const claimData = Array.isArray(clm) ? clm[0] : clm;
+  if (!claimData) return null;
+
+  const claimResponse = claimData.claim_response;
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table className="sit-table">
+        <tbody>
+          <tr>
+            <td className="text-start" colSpan="4">
+              <strong>Claim:</strong> {claimData.cc || ''}
+            </td>
+          </tr>
+          <tr>
+            <th>Claim No</th>
+            <td>#{claimData.claim_no}</td>
+            <th>Claim Status</th>
+            <td>
+              {claimData.status === 'Not Verify' && <span className="badge bg-danger">Not Verify</span>}
+              {claimData.status === 'Verify' && <span className="badge bg-warning text-dark">Verify</span>}
+              {claimData.status === 'Rejected' && <span className="badge bg-danger">Rejected</span>}
+              {claimData.status === 'Approved' && <span className="badge bg-success">Approved</span>}
+              {!['Not Verify', 'Verify', 'Rejected', 'Approved'].includes(claimData.status) && (
+                <span className="badge bg-secondary">{claimData.status || 'Unknown'}</span>
+              )}
+            </td>
+          </tr>
+          <tr>
+            <th>Paid Amount</th>
+            <td>
+              {order.payment_price ? Number(order.payment_price).toLocaleString('en-US') : 0} USD
+            </td>
+            <th>Sales Executive</th>
+            <td>
+              {order.invoice_id ? order.req_admin?.name : order.admin?.name}
+            </td>
+          </tr>
+          <tr>
+            <th>Claim Amount</th>
+            <td>{claimData.claim_amount ? Number(claimData.claim_amount).toLocaleString('en-US') : 0} USD</td>
+            {claimResponse ? (
+              <>
+                <th>Claim Approved</th>
+                <td>{claimResponse.approved_amount ? Number(claimResponse.approved_amount).toLocaleString('en-US') : 0} USD</td>
+              </>
+            ) : (
+              <td colSpan="2"></td>
+            )}
+          </tr>
+          {claimResponse && (
+            <>
+              <tr>
+                <th>Claim Policy</th>
+                <td>
+                  {claimResponse.claim_policy == '1' ? 'Return Money' : 'Adjusting in next Purchase'}
+                </td>
+                <th>Claim Slip</th>
+                <td className="text-center">
+                  <form method="post" action="https://media.carpoolkr.com/claim/download" target="_blank">
+                    <input type="hidden" name="id" value={claimResponse.id} />
+                    <button className="btn btn-sm btn-light border shadow-sm" type="submit" name="Submit">
+                      <i className="fa fa-download text-primary"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <tr>
+                <th>Claim Use</th>
+                <td>{claimResponse.claim_use == '1' ? 'Yes' : 'No'}</td>
+                {claimData.claim_use_date ? (
+                  <>
+                    <th>Claim Use Date</th>
+                    <td>{claimResponse.claim_use_date}</td>
+                  </>
+                ) : (
+                  <>
+                    <th>
+                      {claimResponse.claim_policy == '1' ? 'Money Receipt' : 'Action'}
+                    </th>
+                    <td className="text-center">
+                      {claimResponse.claim_policy == '1' ? (
+                        claimResponse.claim_use == '1' ? (
+                          <form method="post" action="https://media.carpoolkr.com/claim/receipt/download" target="_blank">
+                            <input type="hidden" name="id" value={claimResponse.id} />
+                            <button className="btn btn-sm btn-light border shadow-sm" type="submit">
+                              <i className="fa fa-download text-primary"></i>
+                            </button>
+                          </form>
+                        ) : null
+                      ) : 'NULL'}
+                    </td>
+                  </>
+                )}
+              </tr>
+              {claimData.claim_use_date && (
+                <tr>
+                  <th>
+                    {claimResponse.claim_policy == '1' ? 'Money Receipt' : 'Action'}
+                  </th>
+                  <td className="text-center">
+                    {claimResponse.claim_policy == '1' ? (
+                      claimResponse.claim_use == '1' ? (
+                        <form method="post" action="https://media.carpoolkr.com/claim/receipt/download" target="_blank">
+                          <input type="hidden" name="id" value={claimResponse.id} />
+                          <button className="btn btn-sm btn-light border shadow-sm" type="submit">
+                            <i className="fa fa-download text-primary"></i>
+                          </button>
+                        </form>
+                      ) : null
+                    ) : 'NULL'}
+                  </td>
+                  <td colSpan="2"></td>
+                </tr>
+              )}
+            </>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

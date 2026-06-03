@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1057.0",
+    "@aws-sdk/s3-request-presigner": "^3.1057.0",
     "@popperjs/core": "^2.11.8",
     "@react-google-maps/api": "^2.19.3",
     "axios": "^1.12.2",

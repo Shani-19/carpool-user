@@ -24,10 +24,22 @@ export function middleware(req) {
   }
 
   // If logged in and trying to visit login/register → redirect to dashboard
+  // if ((pathname === "/login" || pathname === "/register") && token) {
+  //   const dashboardUrl = new URL("/dashboard", req.url);
+  //   return NextResponse.redirect(dashboardUrl);
+  // }
+
+  /* ===== Maira Edit START: 02-06-2026 Booking Page Redesign ===== */
+  // If logged in and trying to visit login/register → honour ?redirect if present, else dashboard
   if ((pathname === "/login" || pathname === "/register") && token) {
-    const dashboardUrl = new URL("/dashboard", req.url);
-    return NextResponse.redirect(dashboardUrl);
+    const redirectTo = req.nextUrl.searchParams.get("redirect");
+    const isSafeRelative = redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//");
+    const targetUrl = isSafeRelative
+      ? new URL(redirectTo, req.url)
+      : new URL("/dashboard", req.url);
+    return NextResponse.redirect(targetUrl);
   }
+  /* ===== Maira Edit END ===== */
 
   return NextResponse.next();
 }

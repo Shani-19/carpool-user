@@ -1,6 +1,5 @@
 import { DEFAULT_BOUNDS } from "@/constants/filters";
 import { api } from "../api";
-import { cache } from "react";
 
 /* ===== Maira Edit START: Stock Switch ===== */
 const isOtherStock = (stockType) =>
@@ -77,9 +76,7 @@ export const normalizeVehicle = (v = {}, endpoint = "cars") => {
   // cars/suvs: price sometimes nested in "0" - logic from merge
   const nestedPriceObj = v?.[0];
   const price = v.price ?? nestedPriceObj?.price ?? null;
-  const discount_price = (v.discount_price !== undefined && v.discount_price !== null) 
-    ? v.discount_price 
-    : (nestedPriceObj?.discount_price ?? null);
+  const discount_price = v.discount_price ?? nestedPriceObj?.discount_price ?? null;
 
   return {
     id: v.id,
@@ -132,9 +129,14 @@ export const normalizeVehicle = (v = {}, endpoint = "cars") => {
     passenger: v.passenger ?? null,
     doors: v.door ?? v.doors ?? null,
     steering: v.streering || v.steering || "LHD",
-    make_name: v.car_make || v.make_name || (typeof v.make === 'object' ? v.make?.name : v.make) || null,
-    model_name: v.car_model || v.model_name || (typeof v.model === 'object' ? v.model?.name : v.model) || null,
-    main_image: v.main_image ?? null,
+    make_name: v.car_make || v.make_name || v.make || null,
+    model_name: v.car_model || v.model_name || v.model || null,
+    // ===== Maira Edit START: image-source-fallback =====
+    main_image:
+      v.main_image ??
+      (typeof v.images?.[0] === "string" ? v.images[0] : null) ??
+      null,
+    // ===== Maira Edit END =====
     images: v.images || [],
     description: v.comment || v.description || null,
     options: v.options || [],
@@ -366,16 +368,16 @@ export const getVehicles = async (endpoint = "cars", page = 1, perPage = 50, sor
 };
 
 
-export const getVehicleBySlug = cache(async (slug, endpoint = "cars") => {
+export const getVehicleBySlug = async (slug, endpoint = "cars") => {
   try {
     const res = await api.get(`/${endpoint}/${slug}`);
-    console.log(`API Fetch Success for ${slug} [${endpoint}]`);
+    console.log(`API Response for ${slug} [${endpoint}]:`, res.data);
     return res.data;
   } catch (error) {
     console.error(`Failed to fetch ${endpoint} by slug ${slug}:`, error);
     return { success: false, data: null };
   }
-});
+};
 
 export const SORT_OPTIONS = [
   { value: "default", label: "Sort by" },

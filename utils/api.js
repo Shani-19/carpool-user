@@ -37,11 +37,17 @@ export const authAPI = {
   orderDetailUpdate: (updateData) => api.post('/orders/update', updateData),
   getCountries: () => api.get('/countries'),
   submitInspectionRequest: (data) => api.post('/inspection-request', data),
+  /* ===== Maira Edit START: 02-06-2026 Booking Page Redesign ===== */
+  getUserDetail: () => api.get('/user-detail'),
+  /* ===== Maira Edit END ===== */
 };
 
 export const bookingAPI = {
   getMyBookings: (query = '') => api.get(`/my-bookings${query}`),
   bookingDetail: (booking_num) => api.get(`/bookings/${booking_num}`),
+  /* ===== Maira Edit START: 02-06-2026 Booking Page Redesign ===== */
+  createBooking: (data) => api.post('/booking-create', data),
+  /* ===== Maira Edit END ===== */
 };
 
 export const inspectionAPI = {
@@ -57,6 +63,7 @@ export const orderAPI = {
     }
   }),
   getMyReserved: (query = '') => api.get(`/my-reserved${query}`),
+  submitClaim: (data) => api.post('/order-claim', data),
 };
 
 export const balanceSheetAPI = {
@@ -64,6 +71,8 @@ export const balanceSheetAPI = {
   getAllBalanceSheet: () => api.get(`/balance-sheet`, { params: { all: true } }),
 };
 
-
-
-
+// ===== Maira Edit START: 02-06-2026 quotation-api-helper =====
+export const quotationAPI = {
+  sendQuotation: (data) => api.post("/quotation-send", data),
+};
+// ===== Maira Edit END =====

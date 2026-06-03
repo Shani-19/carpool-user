@@ -68,10 +68,13 @@ export default function Header1({
           <span className="top-header-divider">|</span>
 
           {isAuthenticated && isClient ? (
-
-            <Link href={`/dashboard`} className="top-header-auth">
-              Welcome, {user?.name || 'User'}
-            </Link>
+            <>
+              <span className="top-header-label">Welcome, {user?.name || 'User'}</span>
+              <span className="top-header-divider">|</span>
+              <Link href={`/dashboard`} className="top-header-auth">
+                My Dashboard
+              </Link>
+            </>
           ) : (
             <>
               <span>Welcome Guest</span>
@@ -89,7 +92,6 @@ export default function Header1({
         </div>
       </div>
       {/* ===== Maira Edit END ===== */}
-
 
       <header className={`boxcar-header  ${headerClass}`}>
         <div className="header-inner">
