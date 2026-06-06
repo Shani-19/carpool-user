@@ -38,6 +38,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
   const [claimUploading, setClaimUploading] = useState(false);
   const [claimSubmitting, setClaimSubmitting] = useState(false);
   const [claimMessage, setClaimMessage] = useState({ type: '', text: '' });
+  const [claimUploadProgress, setClaimUploadProgress] = useState({});
 
   useEffect(() => {
     if (order_num && !orderData) {
@@ -153,12 +154,13 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
     if (files.length === 0) return;
 
     setClaimUploading(true);
-    setClaimMessage({ type: 'info', text: `Uploading ${type}...` });
+    setClaimMessage({ type: 'info', text: `Uploading ${type}s...` });
+    setClaimUploadProgress({});
 
     try {
       const updatedFiles = type === 'video' ? [...claimForm.videos] : [...claimForm.images];
 
-      for (const file of files) {
+      const uploadPromises = files.map(async (file) => {
         // Get Presigned URL
         const presignRes = await fetch('/api/s3-upload', {
           method: 'POST',
@@ -171,25 +173,47 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
         });
 
         if (!presignRes.ok) throw new Error('Failed to get upload URL');
-        const { presignedUrl, key } = await presignRes.json();
+        const { presignedUrl, filename } = await presignRes.json();
 
-        // Upload directly to S3
-        await axios.put(presignedUrl, file, {
-          headers: { 'Content-Type': file.type }
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', presignedUrl, true);
+          xhr.setRequestHeader('Content-Type', file.type);
+          
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = Math.round((e.loaded / e.total) * 100);
+              setClaimUploadProgress(prev => ({ ...prev, [file.name]: percentComplete }));
+            }
+          };
+          
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve();
+            } else {
+              reject(new Error(`S3 upload failed with status ${xhr.status}`));
+            }
+          };
+          
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send(file);
         });
 
-        updatedFiles.push(key);
-      }
+        return filename;
+      });
+
+      const uploadedKeys = await Promise.all(uploadPromises);
+      updatedFiles.push(...uploadedKeys);
 
       setClaimForm(prev => ({
         ...prev,
         [type === 'video' ? 'videos' : 'images']: updatedFiles
       }));
-      setClaimMessage({ type: 'success', text: `${type === 'video' ? 'Video' : 'Image'} uploaded successfully!` });
+      setClaimMessage({ type: 'success', text: `${type === 'video' ? 'Video' : 'Image'}(s) uploaded successfully!` });
 
     } catch (error) {
       console.error('S3 Upload Error:', error);
-      setClaimMessage({ type: 'danger', text: 'Error uploading file. Please try again.' });
+      setClaimMessage({ type: 'danger', text: 'Error uploading file(s). Please try again.' });
     } finally {
       setClaimUploading(false);
     }
@@ -889,14 +913,38 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                             </div>
                             <div className="col-12">
                               <label className="form-label small fw-bold text-muted mb-1">YouTube Video URL (Optional)</label>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="https://youtube.com/watch?v=..."
+                              <input 
+                                type="text" 
+                                className="form-control" 
+                                placeholder="https://youtube.com/watch?v=..." 
                                 value={claimForm.ytvideo}
-                                onChange={(e) => setClaimForm({ ...claimForm, ytvideo: e.target.value })}
+                                onChange={(e) => setClaimForm({...claimForm, ytvideo: e.target.value})}
                               />
                             </div>
+
+                            {Object.keys(claimUploadProgress).length > 0 && claimUploading && (
+                              <div className="col-12 bg-white p-3 rounded border shadow-sm my-2">
+                                <label className="form-label small fw-bold text-muted mb-3 d-block"><i className="fa fa-spinner fa-spin me-2 text-danger"></i> Upload Progress</label>
+                                {Object.entries(claimUploadProgress).map(([fileName, progress]) => (
+                                  <div key={fileName} className="mb-3">
+                                    <div className="d-flex justify-content-between small text-muted mb-1">
+                                      <span className="text-truncate fw-medium" style={{ maxWidth: '80%' }}>{fileName}</span>
+                                      <span className="fw-bold">{progress}%</span>
+                                    </div>
+                                    <div className="progress rounded-pill shadow-sm" style={{ height: '8px', backgroundColor: '#f0f0f0' }}>
+                                      <div 
+                                        className="progress-bar progress-bar-striped progress-bar-animated bg-danger" 
+                                        role="progressbar" 
+                                        style={{ width: `${progress}%` }} 
+                                        aria-valuenow={progress} 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100"
+                                      ></div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
 
                             <div className="col-md-6">
                               <label className="form-label small fw-bold text-muted mb-1">Images (Optional)</label>
@@ -914,8 +962,8 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                                 <div className="p-2 bg-white rounded border shadow-sm">
                                   <Gallery>
                                     <div className="d-flex flex-wrap gap-2">
-                                      {claimForm.images.map((imgKey, idx) => {
-                                        const imgUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://img.carpoolkr.com'}/${imgKey}`;
+                                      {claimForm.images.map((imgName, idx) => {
+                                        const imgUrl = `https://img.carpoolkr.com/assets/claim/images/${imgName}`;
                                         return (
                                           <Item
                                             key={idx}
@@ -957,10 +1005,10 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                               {claimForm.videos.length > 0 && (
                                 <div className="p-2 bg-white rounded border shadow-sm">
                                   <div className="d-flex flex-wrap gap-2">
-                                    {claimForm.videos.map((vidKey, idx) => (
+                                    {claimForm.videos.map((vidName, idx) => (
                                       <div key={idx} className="bg-light px-2 py-1 rounded small border text-truncate" style={{ maxWidth: '100%' }}>
                                         <i className="fa fa-video me-2 text-danger"></i>
-                                        {vidKey.split('/').pop()}
+                                        {vidName}
                                       </div>
                                     ))}
                                   </div>

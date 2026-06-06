@@ -3,26 +3,66 @@ import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import Link from "next/link";
 import Image from "next/image";
-import { getRelatedEncarVehicles } from "@/utils/vehicles/encarAPI";
+import { getRelatedEncarVehicles, getEncarVehicles, normalizeEncarSimple } from "@/utils/vehicles/encarAPI";
 import { useCurrency } from "@/context/CurrencyContext";
 
-export default function RelatedEncarCars({ carId }) {
+export default function RelatedEncarCars({ carId, urlType, modelName }) {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currency, format, convert } = useCurrency();
 
   useEffect(() => {
     if (!carId) {
-        console.warn("RelatedEncarCars: No carId provided");
-        setLoading(false);
-        return;
+      console.warn("RelatedEncarCars: No carId provided");
+      setLoading(false);
+      return;
     }
 
     const fetchRelated = async () => {
       setLoading(true);
       try {
-        console.log(`RelatedEncarCars: Fetching for ID ${carId}`);
-        const data = await getRelatedEncarVehicles(carId);
+        console.log(`RelatedEncarCars: Fetching for ID ${carId}, type ${urlType}`);
+
+        let data = [];
+        if (urlType === 'cargo') {
+          // Fetch up to 50 vehicles to increase chances of finding the same model
+          const res = await getEncarVehicles(1, 50, 'default', { category: 'truck', car_type: 'Y' });
+          if (res && res.data) {
+            let filtered = res.data;
+            if (modelName) {
+              filtered = filtered.filter(v => v.Model === modelName);
+            }
+
+            data = filtered.map(v => {
+              const imgBase = "https://ci.encar.com";
+              let mainImage = "/images/resource/inventory1-6.png";
+              if (v.Photos && v.Photos.length > 0) {
+                mainImage = `${imgBase}${v.Photos[0].location || v.Photos[0].Location || v.Photos[0].path || ''}?impolicy=heightRate&rh=192&cw=320&ch=192&cg=Center&wtmk=https://ci.encar.com/wt_mark/w_mark_04.png&wtmkg=SouthEast&wtmkw=70&wtmkh=30`;
+              } else if (v.Photo) {
+                mainImage = `${imgBase}${v.Photo}001.jpg`;
+              }
+
+              const originalPrice = v.Price;
+              const isLowPrice = typeof originalPrice === 'number' && originalPrice < 500;
+
+              return {
+                id: v.Id || v.id,
+                name: `${v.FormYear || ''} ${v.Manufacturer || ''} ${v.Model || ''} ${v.Badge || ''}`.trim(),
+                price: typeof originalPrice === 'number' ? originalPrice + 44 : originalPrice,
+                isLowPrice,
+                mileage: v.Mileage || 0,
+                capacity: v.Capacity || "",
+                formDetail: v.FormDetail || "",
+                fuel_type: v.FuelType || "-",
+                transmission_type: v.Transmission || "-",
+                main_image: mainImage
+              };
+            }).filter(v => v !== null && v.id !== carId).slice(0, 8);
+          }
+        } else {
+          data = await getRelatedEncarVehicles(carId);
+        }
+
         console.log(`RelatedEncarCars: Found ${data.length} vehicles`);
         setCars(data);
       } catch (err) {
@@ -37,15 +77,15 @@ export default function RelatedEncarCars({ carId }) {
 
   if (loading) return (
     <section className="cars-section-three">
-        <div className="boxcar-container text-center py-5">
-            <div className="spinner-border text-primary" role="status"></div>
-        </div>
+      <div className="boxcar-container text-center py-5">
+        <div className="spinner-border text-primary" role="status"></div>
+      </div>
     </section>
   );
 
   if (!cars || cars.length === 0) {
-      console.log("RelatedEncarCars: No cars to display");
-      return null;
+    console.log("RelatedEncarCars: No cars to display");
+    return null;
   }
 
   const fmtNumber = (val) => {
@@ -59,7 +99,7 @@ export default function RelatedEncarCars({ carId }) {
       <div className="boxcar-container">
         <div className="boxcar-title wow fadeInUp">
           <h2>Related Listings</h2>
-          <Link href="/domestic" className="btn-title">
+          <Link href={`/${urlType || 'domestic'}`} className="btn-title">
             View All
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -141,14 +181,14 @@ export default function RelatedEncarCars({ carId }) {
               <div
                 key={index}
                 className="car-block-three col-lg-3 col-md-6 col-sm-12"
-                onClick={() => window.open(`/domestic/${car.id}`, '_blank')}
+                onClick={() => window.open(`/${urlType || 'domestic'}/${car.id}`, '_blank')}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="inner-box">
                   <div className="image-box">
                     <div className="slider-thumb">
                       <div className="image">
-                        <Link href={`/domestic/${car.id}`} target="_blank">
+                        <Link href={`/${urlType || 'domestic'}/${car.id}`} target="_blank">
                           <Image
                             alt={car.name}
                             src={car.main_image}
@@ -162,7 +202,7 @@ export default function RelatedEncarCars({ carId }) {
                   </div>
                   <div className="content-box">
                     <h6 className="title">
-                      <Link href={`/domestic/${car.id}`} target="_blank">
+                      <Link href={`/${urlType || 'domestic'}/${car.id}`} target="_blank">
                         {car.name}
                       </Link>
                     </h6>
@@ -170,17 +210,30 @@ export default function RelatedEncarCars({ carId }) {
                       <li>
                         <i className="flaticon-speedometer" /> {fmtNumber(car.mileage)} km
                       </li>
-                      <li>
-                        <i className="flaticon-gasoline-pump" /> {car.fuel_type}
-                      </li>
-                      <li>
-                        <i className="flaticon-gearbox" /> {car.transmission_type}
-                      </li>
+                      {urlType === 'cargo' ? (
+                        <>
+                          <li>
+                            <i className="fa-solid fa-truck" style={{ marginRight: '5px' }} /> {car.capacity || "-"}
+                          </li>
+                          <li>
+                            <i className="fa-solid fa-layer-group" style={{ marginRight: '5px' }} /> {car.formDetail.slice(0, 11) || "-"}
+                          </li>
+                        </>
+                      ) : (
+                        <>
+                          <li>
+                            <i className="flaticon-gasoline-pump" /> {car.fuel_type}
+                          </li>
+                          <li>
+                            <i className="flaticon-gearbox" /> {car.transmission_type}
+                          </li>
+                        </>
+                      )}
                     </ul>
                     <div className="btn-box">
                       <span>{displayPrice}</span>
                       <Link
-                        href={`/domestic/${car.id}`}
+                        href={`/${urlType || 'domestic'}/${car.id}`}
                         target="_blank"
                         className="details"
                       >

@@ -1,6 +1,30 @@
 import { api } from "../api";
 import axios from 'axios';
 
+// ─── Korean → English translation (MyMemory free API) ───────────────────────
+const _translationCache = {};
+export const translateKoreanText = async (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    // Skip already-Latin text (basic heuristic: no Hangul code points)
+    if (!/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(text)) return text;
+    if (_translationCache[text]) return _translationCache[text];
+    try {
+        const res = await fetch(
+            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ko|en`
+        );
+        const data = await res.json();
+        const translated =
+            data?.responseData?.translatedText ||
+            data?.responseStatus === 200
+                ? data.responseData.translatedText
+                : text;
+        _translationCache[text] = translated || text;
+        return _translationCache[text];
+    } catch {
+        return text;
+    }
+};
+
 // Encar Mappings
 const colorMap = {
     "검정색": "Black", "검정투톤": "Black Two-tone", "쥐색": "Dark Gray", "은색": "Silver",
@@ -367,6 +391,42 @@ export const normalizeEncarDetail = (data) => {
     carItem.options = Object.entries(groupedOptions)
         .filter(([_, names]) => names.length > 0)
         .map(([title, names]) => ({ title, names }));
+
+    return carItem;
+};
+
+// ─── Async version: same as normalizeEncarDetail but translates Korean strings ─
+export const normalizeEncarDetailAsync = async (data) => {
+    const carItem = normalizeEncarDetail(data);
+    if (!carItem) return null;
+
+    const detail = data?.category || data?.Category || {};
+
+    // Only translate if the English name is absent/same-as-Korean
+    const [make, modelGroup, model] = await Promise.all([
+        detail.manufacturerEnglishName
+            ? Promise.resolve(detail.manufacturerEnglishName)
+            : translateKoreanText(detail.manufacturerName || ''),
+        detail.modelGroupEnglishName
+            ? Promise.resolve(detail.modelGroupEnglishName)
+            : translateKoreanText(detail.modelGroupName || ''),
+        detail.modelEnglishName
+            ? Promise.resolve(detail.modelEnglishName)
+            : translateKoreanText(detail.modelName || ''),
+    ]);
+
+    const grade = detail.gradeEnglishName
+        ? detail.gradeEnglishName
+        : await translateKoreanText(detail.gradeName || detail.gradeDetailName || '');
+
+    carItem.make_name  = make      || carItem.make_name;
+    carItem.model_name = modelGroup || carItem.model_name;
+    // Re-build the display name: Year  Manufacturer  Model  ModelGroup  Grade
+    carItem.name = [carItem.year, make, model, modelGroup, grade]
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
     return carItem;
 };

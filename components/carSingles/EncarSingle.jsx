@@ -681,7 +681,7 @@ export default function EncarSingle({ carItem }) {
         />
         <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} vehicleData={carItem} />
       </section>
-      <RelatedEncarCars carId={carItem?.id} />
+      <RelatedEncarCars carId={carItem?.id} urlType={urlType} modelName={carItem?.model_name} />
 
       {showRequestModal && (
         <div

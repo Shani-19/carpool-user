@@ -4,6 +4,7 @@ import Blogs from "@/components/homes/home-1/Blogs";
 import Brands from "@/components/homes/home-1/Brands";
 import Cars from "@/components/homes/home-1/Cars";
 import Cars2 from "@/components/homes/home-1/Cars2";
+import ExploreAllVehicles from "@/components/homes/home-1/ExploreAllVehicles";
 import Cta from "@/components/common/Cta";
 import Facts from "@/components/homes/home-1/Facts";
 import Features from "@/components/homes/home-1/Features";
@@ -22,9 +23,10 @@ export default function HomePage1() {
       <Header1 />
       <Hero />
       <Brands />
-      <Cars />
+      {/* <Cars /> */}
+      <ExploreAllVehicles />
       <Features />
-      <Facts />
+      {/* <Facts /> */}
       <Features2 />
       <Cars2 />
       <Features3 />

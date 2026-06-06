@@ -2,7 +2,7 @@ import React from "react";
 import Header from "@/components/headers/Header";
 import Footer from "@/components/footers/Footer";
 import EncarSingle from "@/components/carSingles/EncarSingle";
-import { getEncarVehicleDetail, normalizeEncarDetail } from "@/utils/vehicles/encarAPI";
+import { getEncarVehicleDetail, normalizeEncarDetailAsync } from "@/utils/vehicles/encarAPI";
 
 const getMetaDescription = (car, baseDesc) => {
   if (!car) return "";
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }) {
   if (!id) return { title: "Vehicle Not Found" };
 
   const detailData = await getEncarVehicleDetail(id);
-  const carItem = normalizeEncarDetail(detailData);
+  const carItem = await normalizeEncarDetailAsync(detailData);
   
   if (!carItem) {
     return {
@@ -86,7 +86,7 @@ export default async function EncarDetailPage({ params }) {
     try {
       const detailData = await getEncarVehicleDetail(id);
       if (detailData) {
-        carItem = normalizeEncarDetail(detailData);
+        carItem = await normalizeEncarDetailAsync(detailData);
       }
     } catch (error) {
       console.error("Error fetching Encar detail:", error);
