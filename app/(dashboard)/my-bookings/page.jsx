@@ -4,8 +4,8 @@ import HeaderDashboard from "@/components/headers/HeaderDashboard";
 import React from "react";
 
 export const metadata = {
-  title: "My Booking List || Carpool Korea",
-  description: "Carpool - Carpool Korea",
+  title: "Manage Your Bookings",
+  description: "View and manage all your vehicle bookings, track their status, and stay updated throughout the booking process.",
 };
 
 export default function MyBookingsPage() {

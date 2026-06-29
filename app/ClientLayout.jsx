@@ -11,6 +11,7 @@ import BackToTop from "@/components/common/BackToTop";
 import { usePathname } from "next/navigation";
 import { AuthProvider } from "@/context/AuthContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import RecentlyViewed from "@/components/common/RecentlyViewed";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
@@ -32,6 +33,7 @@ export default function ClientLayout({ children }) {
         </div>
         <FilterSidebar />
         <BackToTop />
+        <RecentlyViewed />
       </CurrencyProvider>
     </Context>
   );

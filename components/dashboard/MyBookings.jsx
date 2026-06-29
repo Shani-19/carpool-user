@@ -47,27 +47,39 @@ export default function MyBookings() {
       // console.log(response)
       if (response.data.success) {
         const transformedBookings = response.data.bookings.map(booking => {
-          const vehicle = booking.car || booking.bus || booking.truck;
-          const vehicleType = booking.car ? 'car' : booking.bus ? 'bus' : 'truck';
-          const imgPath = booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW : booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW : process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW;
+          const vehicle = booking.car || booking.bus || booking.truck || booking.bike || booking.part;
+
+          const vehicleType = booking.car ? 'car' :
+            booking.bus ? 'bus' :
+              booking.truck ? 'truck' :
+                booking.bike ? 'bike' : 'part';
+
+          const imgPath = booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW :
+            booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW :
+              booking.truck ? process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW :
+                booking.bike ? process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW :
+                  process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW;
 
           return {
             id: booking.id,
             productImage: vehicle?.main_image ? imgPath + vehicle.main_image : "/images/resource/add-car1.jpg",
-            brand: vehicle?.make?.name || 'Unknown',
-            model: vehicle?.model?.name || 'Unknown',
-            year: vehicle?.model_year || 'Unknown',
-            vin: vehicle?.vin || 'Unknown',
-            driveType: vehicle?.drive_type || '',
-            bodyType: vehicle?.type?.name || vehicle?.ca?.name || '-',
-            transmission: vehicle?.transmission || 'Unknown',
-            seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : '',
-            fuelType: vehicle?.fuel?.name || 'Unknown',
-            engine: vehicle?.engine_volume ? `${vehicle.engine_volume} CC` : 'Unknown',
-            mileage: vehicle?.odometer ? `${vehicle.odometer} Km` : 'Unknown',
-            bookingDate: booking.created_at ? new Date(booking.created_at).toLocaleDateString() : 'Unknown Date',
-            bookingNo: booking.booking_num || 'Unknown',
-            status: booking.status == 'Complete' ? 'Completed' : booking.status || 'Unknown',
+            brand: vehicle?.make?.name || null,
+            model: vehicle?.model?.name || null,
+            modeld: vehicle?.modeld?.name || null,
+            year: vehicle?.model_year || null,
+            vin: vehicle?.vin || null,
+            name: vehicle?.name || null,
+            color: vehicle?.color || null,
+            driveType: vehicle?.drive_type || null,
+            bodyType: vehicle?.type?.name || vehicle?.ca?.name || null,
+            transmission: vehicle?.transmission || null,
+            seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : null,
+            fuelType: vehicle?.fuel?.name || null,
+            engine: vehicle?.engine_volume ? `${vehicle.engine_volume} CC` : null,
+            mileage: vehicle?.odometer ? `${vehicle.odometer} Km` : null,
+            bookingDate: booking.created_at ? new Date(booking.created_at).toLocaleDateString() : null,
+            bookingNo: booking.booking_num || null,
+            status: booking.status == 'Complete' ? 'Completed' : booking.status || null,
             vehicleType: vehicleType
           };
         });
@@ -109,6 +121,7 @@ export default function MyBookings() {
       const searchMatch = search === "" ||
         booking.brand?.toLowerCase().includes(search.toLowerCase()) ||
         booking.model?.toLowerCase().includes(search.toLowerCase()) ||
+        booking.modeld?.toLowerCase().includes(search.toLowerCase()) ||
         booking.vin?.toLowerCase().includes(search.toLowerCase());
 
       // Filter by year
@@ -119,11 +132,12 @@ export default function MyBookings() {
 
       // Filter by model
       const modelMatch = !filters.model || booking.model === filters.model;
+      const modeldMatch = !filters.modeld || booking.modeld === filters.modeld;
 
       // Filter by active tab
       const tabMatch = activeTab === 'all' || booking.status === activeTab;
 
-      return searchMatch && yearMatch && brandMatch && modelMatch && tabMatch;
+      return searchMatch && yearMatch && brandMatch && modelMatch && modeldMatch && tabMatch;
     });
 
     // Sort results
@@ -231,7 +245,7 @@ export default function MyBookings() {
             <div className="list-title">
               <h3 className="title">My Bookings</h3>
               <div className="text">
-                This website is the most safe and convenient way for the deal through Carpool Korea.
+                View and manage all your vehicle bookings, track their status, and stay updated throughout the booking process.
               </div>
             </div>
             <div className="my-listing-table wrap-listing myBookingSec">
@@ -256,7 +270,7 @@ export default function MyBookings() {
                       </span>
                       <input
                         type="text"
-                        placeholder="Search by brand, model, or chassis..."
+                        placeholder="Search by manufacturers, models, model details or chassis..."
                         value={search}
                         className="w-100"
                         onChange={(e) => setSearch(e.target.value)}
@@ -401,7 +415,7 @@ export default function MyBookings() {
                         className={`nav-link ${activeTab === 'Pending' ? 'active' : ''}`}
                         type="button"
                       >
-                        Pending ({pendingCount})
+                        Pending Confirmation ({pendingCount})
                       </button>
                     </li>
                     <li className="nav-item" role="presentation">
@@ -410,7 +424,7 @@ export default function MyBookings() {
                         className={`nav-link ${activeTab === 'Waiting' ? 'active' : ''}`}
                         type="button"
                       >
-                        Waiting ({waitingCount})
+                        In Process ({waitingCount})
                       </button>
                     </li>
                     <li className="nav-item" role="presentation">
@@ -428,7 +442,7 @@ export default function MyBookings() {
                         className={`nav-link ${activeTab === 'Canceled' ? 'active' : ''}`}
                         type="button"
                       >
-                        Canceled ({canceledCount})
+                        Cancelled ({canceledCount})
                       </button>
                     </li>
                   </ul>
@@ -469,11 +483,13 @@ export default function MyBookings() {
                               </div>
                               <div className="car-info">
                                 <h4 className="car-title">
-                                  {item.year}, {item.brand}, {item.model}
+                                  {item.vehicleType == 'part' ? `${item.name}` : `${item.year}, ${item.brand}, ${item.modeld || item.model}`}
                                 </h4>
-                                <p className="vin">Chassis No. {item.vin}</p>
+                                <p className="vin">{item.vehicleType == 'part' ? `Part No: ` : `Chassis No. `} {item.vin}</p>
                                 <p className="mb-details">
-                                  {item.transmission ? item.transmission : ''} {item.fuelType ? ' | ' + item.fuelType : ''} {item.driveType ? ' | ' + item.driveType : ''} {item.bodyType ? ' | ' + item.bodyType : ''}  {item.seats ? ' | ' + item.seats : ''}
+
+                                  {item.vehicleType == 'part' ? `${item.year} | ${item.model} | ${item.brand}` : ``}
+                                  {item.transmission ? item.transmission : ''} {item.fuelType ? ' | ' + item.fuelType : ''} {item.driveType ? ' | ' + item.driveType : ''} {item.bodyType ? ' | ' + item.bodyType : ''}  {item.seats ? ' | ' + item.seats : ''} {item.color ? ' | ' + item.color : ''}
                                 </p>
                                 <p className="mb-details">
                                   <span className="badge bg-light text-danger me-1 fw-normal">{item.engine}</span>
@@ -482,13 +498,13 @@ export default function MyBookings() {
                               </div>
                             </div>
                             <div className="mb-card-right-box d-flex flex-column justify-content-end">
-                              <p className="d-flex gap-2 align-items-center justify-content-end mb-0">
+                              <p className="d-flex gap-2 align-items-center mb-1">
                                 <strong className="small mb-mobile-hidden">Status: </strong>
                                 <span className={`badge ${item.status === 'Completed' ? 'bg-light text-success' : item.status === 'Canceled' ? 'bg-light text-danger' : 'bg-light text-warning'}`}>{item.status}</span>
                               </p>
                               <div className="booking-info mb-mobile-hidden">
-                                <p><strong>Booking date: </strong>{item.bookingDate}</p>
-                                <p><strong>Booking No: </strong>{item.bookingNo}</p>
+                                <p><strong>Booking Date: </strong>{item.bookingDate}</p>
+                                <p><strong>Booking ID: </strong>{item.bookingNo}</p>
                               </div>
                             </div>
                           </div>

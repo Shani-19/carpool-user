@@ -14,49 +14,66 @@ const ShareModal = ({ isOpen, onClose, vehicleData }) => {
 
   if (!isOpen) return null;
 
-  const title = vehicleData?.name || vehicleData?.title || "Check out this vehicle!";
+  const isPart = vehicleData?._endpoint === 'parts';
+  const itemName = isPart ? 'Part' : 'Vehicle';
+  const title = vehicleData?.name || vehicleData?.title || `Check out this ${itemName.toLowerCase()}!`;
 
   // Compile detailed plain-text specifications for platforms like WhatsApp and Twitter/X
   const getShareText = () => {
     const specs = [];
-    if (vehicleData?.name) specs.push(`*Vehicle Name*: ${vehicleData.name}`);
-    if (vehicleData?.vin) specs.push(`*VIN*: ${vehicleData.vin}`);
+    if (vehicleData?.name) specs.push(`*${itemName} Name*: ${vehicleData.name}`);
+    if (vehicleData?.vin) specs.push(`*${isPart ? 'Part No' : 'VIN'}*: ${vehicleData.vin}`);
     const vehicleNo = vehicleData?.plate_no || vehicleData?.vehicle_no;
-    if (vehicleNo) specs.push(`*Vehicle No*: ${vehicleNo}`);
+    if (vehicleNo && !isPart) specs.push(`*Vehicle No*: ${vehicleNo}`);
     
-    const type = vehicleData?.vehicle_type || vehicleData?.category;
-    if (type) specs.push(`*Vehicle Type*: ${type}`);
-    
-    if (vehicleData?.engine_volume) {
-      const vol = vehicleData.engine_volume;
-      specs.push(`*Engine Volume*: ${vol}${typeof vol === 'number' || !vol.toString().toLowerCase().includes('cc') ? ' cc' : ''}`);
+    if (isPart) {
+      if (vehicleData?.make_name || vehicleData?.make) specs.push(`*Maker*: ${vehicleData.make_name || vehicleData.make}`);
+      if (vehicleData?.model_name || vehicleData?.model) specs.push(`*Model*: ${vehicleData.model_name || vehicleData.model}`);
+      if (vehicleData?.category) specs.push(`*Category*: ${vehicleData.category}`);
+      if (vehicleData?.color) specs.push(`*Color*: ${vehicleData.color}`);
+    } else {
+      const type = vehicleData?.vehicle_type || vehicleData?.category;
+      if (type) specs.push(`*Vehicle Type*: ${type}`);
+      
+      if (vehicleData?.engine_volume) {
+        const vol = vehicleData.engine_volume;
+        specs.push(`*Engine Volume*: ${vol}${typeof vol === 'number' || !vol.toString().toLowerCase().includes('cc') ? ' cc' : ''}`);
+      }
+      
+      const trans = vehicleData?.transmission || vehicleData?.transmission_type;
+      if (trans) specs.push(`*Transmission*: ${trans}`);
+      
+      const miles = vehicleData?.odometer || vehicleData?.mileage;
+      if (miles) {
+        specs.push(`*Mileage*: ${typeof miles === 'number' ? miles.toLocaleString() : miles} km`);
+      }
+      
+      if (vehicleData?.color) specs.push(`*Color*: ${vehicleData.color}`);
+      if (vehicleData?.drive_type) specs.push(`*Drive Type*: ${vehicleData.drive_type}`);
     }
-    
-    const trans = vehicleData?.transmission || vehicleData?.transmission_type;
-    if (trans) specs.push(`*Transmission*: ${trans}`);
-    
-    const miles = vehicleData?.odometer || vehicleData?.mileage;
-    if (miles) {
-      specs.push(`*Mileage*: ${typeof miles === 'number' ? miles.toLocaleString() : miles} km`);
-    }
-    
-    if (vehicleData?.color) specs.push(`*Color*: ${vehicleData.color}`);
-    if (vehicleData?.drive_type) specs.push(`*Drive Type*: ${vehicleData.drive_type}`);
-    
+
     // Additional tags
     const tags = [];
     const status = vehicleData?.status === 'sale' ? 'Used' : (vehicleData?.status || 'Used');
     tags.push(status);
-    if (vehicleData?.steering) tags.push(vehicleData.steering);
-    if (type) tags.push(type);
-    if (vehicleData?.fuel_type) tags.push(vehicleData.fuel_type);
-    if (vehicleData?.engine_volume) {
-      const vol = vehicleData.engine_volume;
-      tags.push(`${vol}${typeof vol === 'number' || !vol.toString().toLowerCase().includes('cc') ? 'cc' : ''}`);
+    if (!isPart) {
+      if (vehicleData?.steering) tags.push(vehicleData.steering);
+      const type = vehicleData?.vehicle_type || vehicleData?.category;
+      if (type) tags.push(type);
+      if (vehicleData?.fuel_type) tags.push(vehicleData.fuel_type);
+      if (vehicleData?.engine_volume) {
+        const vol = vehicleData.engine_volume;
+        tags.push(`${vol}${typeof vol === 'number' || !vol.toString().toLowerCase().includes('cc') ? 'cc' : ''}`);
+      }
+      const trans = vehicleData?.transmission || vehicleData?.transmission_type;
+      if (trans) tags.push(trans);
+      if (vehicleData?.color) tags.push(vehicleData.color);
+      if (vehicleData?.passenger) tags.push(`${vehicleData.passenger} Passengers`);
+    } else {
+      if (vehicleData?.category) tags.push(vehicleData.category);
+      if (vehicleData?.make_name || vehicleData?.make) tags.push(vehicleData.make_name || vehicleData.make);
+      if (vehicleData?.color) tags.push(vehicleData.color);
     }
-    if (trans) tags.push(trans);
-    if (vehicleData?.color) tags.push(vehicleData.color);
-    if (vehicleData?.passenger) tags.push(`${vehicleData.passenger} Passengers`);
 
     if (tags.length > 0) {
       specs.push(`*More Info*: (${tags.join(', ')})`);
@@ -123,7 +140,7 @@ const ShareModal = ({ isOpen, onClose, vehicleData }) => {
       <div className="share-modal-content" onClick={(e) => e.stopPropagation()} style={contentStyle}>
         {/* Header */}
         <div style={headerStyle}>
-          <h4 style={titleStyle}>Share Vehicle</h4>
+          <h4 style={titleStyle}>Share {itemName}</h4>
           <button onClick={onClose} style={closeButtonStyle}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -141,11 +158,11 @@ const ShareModal = ({ isOpen, onClose, vehicleData }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', margin: '8px 0' }}>
                 {vehicleData.vin && (
                   <div style={specRowStyle}>
-                    <span style={specLabelStyle}>VIN:</span>
+                    <span style={specLabelStyle}>{isPart ? 'Part No:' : 'VIN:'}</span>
                     <span style={specValStyle}>{vehicleData.vin}</span>
                   </div>
                 )}
-                {vehicleNo && (
+                {vehicleNo && !isPart && (
                   <div style={specRowStyle}>
                     <span style={specLabelStyle}>No:</span>
                     <span style={specValStyle}>{vehicleNo}</span>
@@ -164,21 +181,23 @@ const ShareModal = ({ isOpen, onClose, vehicleData }) => {
               {/* Tag Badges */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                 <span className="spec-item">Used</span>
-                {vehicleData.steering && <span className="spec-item">{vehicleData.steering}</span>}
-                {(vehicleData.vehicle_type || vehicleData.category) && (
+                {!isPart && vehicleData.steering && <span className="spec-item">{vehicleData.steering}</span>}
+                {isPart && vehicleData.category && <span className="spec-item">{vehicleData.category}</span>}
+                {!isPart && (vehicleData.vehicle_type || vehicleData.category) && (
                   <span className="spec-item">{vehicleData.vehicle_type || vehicleData.category}</span>
                 )}
-                {vehicleData.fuel_type && <span className="spec-item">{vehicleData.fuel_type}</span>}
-                {vehicleData.engine_volume && (
+                {!isPart && vehicleData.fuel_type && <span className="spec-item">{vehicleData.fuel_type}</span>}
+                {!isPart && vehicleData.engine_volume && (
                   <span className="spec-item">
                     {vehicleData.engine_volume}
                     {typeof vehicleData.engine_volume === 'number' || !vehicleData.engine_volume.toString().toLowerCase().includes('cc') ? 'cc' : ''}
                   </span>
                 )}
-                {trans && <span className="spec-item">{trans}</span>}
+                {!isPart && trans && <span className="spec-item">{trans}</span>}
+                {isPart && (vehicleData.make_name || vehicleData.make) && <span className="spec-item">{vehicleData.make_name || vehicleData.make}</span>}
                 {vehicleData.color && <span className="spec-item">{vehicleData.color}</span>}
-                {vehicleData.drive_type && <span className="spec-item">{vehicleData.drive_type}</span>}
-                {vehicleData.passenger && <span className="spec-item">{vehicleData.passenger} Pax</span>}
+                {!isPart && vehicleData.drive_type && <span className="spec-item">{vehicleData.drive_type}</span>}
+                {!isPart && vehicleData.passenger && <span className="spec-item">{vehicleData.passenger} Pax</span>}
               </div>
             </div>
           </div>

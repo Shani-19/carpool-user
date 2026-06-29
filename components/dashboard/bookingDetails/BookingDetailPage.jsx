@@ -54,12 +54,20 @@ export default function BookingDetailPage() {
     if (!booking) return null;
 
     const numOfBookings = bookingData.bookings.length;
-    const vehicle = booking.car || booking.bus || booking.truck;
-    const vehicleType = booking.car ? 'Car' : booking.bus ? 'Bus' : 'Truck';
-    const bookingType = numOfBookings == 1 ? 'Single' : booking.type == 'Container' ? 'Container' : 'Multiple';
+    const vehicle = booking.car || booking.bus || booking.truck || booking.bike || booking.part;
+
+    const vehicleType = booking.car ? 'Car' :
+      booking.bus ? 'Bus' :
+        booking.truck ? 'Truck' :
+          booking.bike ? 'Bike' : 'Part';
+
     const imgPath = booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW :
       booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW :
-        process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW;
+        booking.truck ? process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW :
+          booking.bike ? process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW :
+            process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW;
+
+    const bookingType = numOfBookings == 1 ? 'Single' : booking.type == 'Container' ? 'Container' : 'Multiple';
     var finalPrice = vehicle.discount_price == 'NULL' ? vehicle.discount_price : vehicle.price - vehicle.discount_price;
     finalPrice = finalPrice.toLocaleString('en-US');
 
@@ -95,7 +103,7 @@ export default function BookingDetailPage() {
   };
 
   const quotationVehicles = (booking) => {
-    const vehicle = booking.car || booking.bus || booking.truck;
+    const vehicle = booking.car || booking.bus || booking.truck || booking.bike || booking.part;
     var finalPrice = vehicle.discount_price == 'NULL' ? vehicle.discount_price : vehicle.price - vehicle.discount_price;
     finalPrice = finalPrice.toLocaleString('en-US');
 
@@ -166,7 +174,7 @@ export default function BookingDetailPage() {
   const btnDisplayCheck = btnConditionA || btnConditionB;
   // console.log(orderStatus, btnDisplayCheck, firstBooking)
 
-  const vehType = firstBooking.car || firstBooking.bus || firstBooking.truck
+  const vehType = firstBooking.car || firstBooking.bus || firstBooking.truck || firstBooking.bike || firstBooking.part;
   const portSizeId = vehType.port_size_id;
   // console.log(bookingData, portSizeId)
 
@@ -179,7 +187,7 @@ export default function BookingDetailPage() {
             <div className="list-title">
               <h3 className="title">Booking Details</h3>
               <div className="text">
-                This website is the most safe and convenient way for the deal through Carpool Korea.
+                View complete booking information, vehicle details, booking status, and important updates in one place.
               </div>
             </div>
 
@@ -193,7 +201,7 @@ export default function BookingDetailPage() {
 
                       <div className="col-md-6">
                         <div className="info-item mb-1 pb-1 text-start">
-                          <strong>Status Overview:</strong>
+                          <strong>Booking Status:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             {Array.from(new Set(transformedBookings.map(b => b.status))).map(status => (
                               <span key={status} className={`badge d-status ${getStatusBadgeClass(status)}`}>
@@ -204,7 +212,7 @@ export default function BookingDetailPage() {
                         </div>
 
                         <div className="info-item mb-1 pb-1 text-start">
-                          <strong>Vehicle Types:</strong>
+                          <strong>Vehicle Categories:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             {Array.from(new Set(transformedBookings.map(b => b.vehicleType))).map(type => (
                               <span key={type} className="badge bg-light text-muted">
@@ -214,7 +222,7 @@ export default function BookingDetailPage() {
                           </div>
                         </div>
                         <p className="info-item mb-1 pb-1 text-start">
-                          <strong> Staff Booked by:
+                          <strong> Booking Agent:
                             {/* <i className="fa fa-user font12 text-muted"></i> */}
                           </strong>
                           <a className="text-muted ms-2 fw-semibold" href="#">
@@ -225,7 +233,7 @@ export default function BookingDetailPage() {
                       </div>
                       <div className="col-md-6">
                         <div className="info-item mb-1 pb-1 text-end">
-                          <strong>Booking Number:</strong>
+                          <strong>Booking ID:</strong>
                           <span className="text-muted ms-2">{transformedBookings[0].bookingNo}</span>
                         </div>
                         <div className="info-item mb-1 pb-1 text-end">
@@ -327,7 +335,7 @@ export default function BookingDetailPage() {
                   portSizeId={portSizeId}
                 />
                 <DetailCard
-                  title="Consignee Information"
+                  title="Consignee (Receiver Information)"
                   section="consignee"
                   data={bookingData.bookings[0].consignee}
                   countries={bookingData.countries}
@@ -337,7 +345,7 @@ export default function BookingDetailPage() {
                   bookingType={transformedBookings[0].bookingType}
                 />
                 <DetailCard
-                  title="Document Delivery Address"
+                  title="Document Delivery Detail"
                   section="document"
                   data={bookingData.bookings[0].documents}
                   countries={bookingData.countries}

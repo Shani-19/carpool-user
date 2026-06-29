@@ -143,7 +143,7 @@ export const normalizeVehicle = (v = {}, endpoint = "cars") => {
     embed_code: v.embed_code || null,
     view: v.view || 0,
     registration_date: v.registration_date || null,
-    
+
     // Additional Specs
     height: v.overall_h ?? null,
     length: v.overall_l ?? null,
@@ -155,6 +155,7 @@ export const normalizeVehicle = (v = {}, endpoint = "cars") => {
     vcr: v.vcr ?? null,
     class: v.class ?? null,
     category: v.category ?? null,
+    size_name: v.size_name ?? null,
     model_detail: v.car_model_detail ?? null,
 
     _endpoint: endpoint,

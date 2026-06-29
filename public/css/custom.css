@@ -108,7 +108,6 @@ button[type='submit']:disabled {
 } */
 
 .booking-info {
-    text-align: right;
     font-size: 14px;
     color: #374151;
     display: flex;
@@ -1235,4 +1234,17 @@ figure.image:hover .cl-reserved-overlay,
 
 .cars-section-three:not(.inventory-section .cars-section-three) {
     padding: 0px 0 160px !important;
+}
+
+.alert-danger {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    gap: 10px;
+}
+
+.btn-primary {
+    background-color: #0c768a;
+    border-color: #0c768a;
 }

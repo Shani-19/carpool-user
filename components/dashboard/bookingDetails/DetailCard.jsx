@@ -503,7 +503,7 @@ const DetailCard = ({ title, data, countries = [], PortCharges = [], ports = [],
             {vehiclesData.map((item, itemIndex) => (
                 <div key={`vehicle-${item.id || itemIndex}`} className="dt-info-row">
                     <DataDisplayItem
-                        label={`Vehicle Cost ${bookingType !== 'Single' ? '(' + item.vehicleNo + ')' : ''}`}
+                        label={`Vehicle Price ${bookingType !== 'Single' ? '(Ref: ' + item.vehicleNo + ')' : ''}`}
                         value={`USD ${item.price}`}
                     />
                     <DataDisplayItem

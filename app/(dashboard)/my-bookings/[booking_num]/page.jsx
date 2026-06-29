@@ -5,8 +5,8 @@ import HeaderDashboard from "@/components/headers/HeaderDashboard";
 import React from "react";
 
 export const metadata = {
-  title: "My Booking List || Carpool Korea",
-  description: "Carpool - Carpool Korea",
+  title: "Booking Details",
+  description: "Carpool Korea",
 };
 
 export default function MyBookingsPage() {

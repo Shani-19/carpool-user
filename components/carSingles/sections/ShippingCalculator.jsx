@@ -285,6 +285,17 @@ export default function ShippingCalculator({ vehicleItem, displayPrice }) {
             <p className="text-center mt-2 mb-0 text-muted" style={{ fontSize: '11px' }}>
               <i className="fa-solid fa-circle-info me-1"></i> Opens WhatsApp with your selection
             </p>
+            {vehicleItem?.slug && (
+              <a
+                href={`/book/${vehicleItem.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn w-100 d-flex justify-content-center align-items-center mt-3"
+                style={{ background: '#405FF2', color: '#fff', padding: '14px', borderRadius: '10px', fontWeight: '600', fontSize: '15px', textDecoration: 'none', transition: 'all 0.3s ease' }}
+              >
+                <i className="fa-solid fa-calendar-check me-2"></i> Book Now
+              </a>
+            )}
           </div>
         </form>
       )}

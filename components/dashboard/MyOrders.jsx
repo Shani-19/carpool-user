@@ -53,14 +53,13 @@ export default function MyOrders() {
                     let imgPath;
 
                     if (order.booking_id) {
-
-                        vehicle = order.booking.car || order.booking.bus || order.booking.truck;
-                        vehicleType = order.booking.car ? 'car' : order.booking.bus ? 'bus' : 'truck';
-                        imgPath = order.booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW : order.booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW : process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW;
+                        vehicle = order.booking.car || order.booking.bus || order.booking.truck || order.booking.bike || order.booking.part;
+                        vehicleType = order.booking.car ? 'car' : order.booking.bus ? 'bus' : order.booking.truck ? 'truck' : order.booking.bike ? 'bike' : 'part';
+                        imgPath = order.booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW : order.booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW : order.booking.truck ? process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW : order.booking.bike ? process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW : process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW;
                     } else {
-                        vehicle = order.order_mul.booking.car || order.order_mul.booking.bus || order.order_mul.booking.truck;
-                        vehicleType = order.order_mul.booking.car ? 'car' : order.order_mul.booking.bus ? 'bus' : 'truck';
-                        imgPath = order.order_mul.booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW : order.order_mul.booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW : process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW;
+                        vehicle = order.order_mul.booking.car || order.order_mul.booking.bus || order.order_mul.booking.truck || order.order_mul.booking.bike || order.order_mul.booking.part;
+                        vehicleType = order.order_mul.booking.car ? 'car' : order.order_mul.booking.bus ? 'bus' : order.order_mul.booking.truck ? 'truck' : order.order_mul.booking.bike ? 'bike' : 'part';
+                        imgPath = order.order_mul.booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW : order.order_mul.booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW : order.order_mul.booking.truck ? process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW : order.order_mul.booking.bike ? process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW : process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW;
                     }
 
 
@@ -83,6 +82,8 @@ export default function MyOrders() {
                         status: order.order_status || 'Unknown',
                         ccode: order.c_code || '-',
                         vehicleType: vehicleType,
+                        category: vehicle?.ca?.name || null,
+                        color: vehicle?.color || null,
                         bookingImages: order.booking_images || []
                     };
                 });
@@ -433,7 +434,7 @@ export default function MyOrders() {
                                                 className={`nav-link ${activeTab === 'Canceled' ? 'active' : ''}`}
                                                 type="button"
                                             >
-                                                Canceled ({canceledCount})
+                                                Cancelled ({canceledCount})
                                             </button>
                                         </li>
                                     </ul>
@@ -500,7 +501,7 @@ export default function MyOrders() {
                                                             )}
                                                             <div className="car-info">
                                                                 <h4 className="car-title">
-                                                                    {item.year}, {item.brand}, {item.model}
+                                                                    {item.vehicleType == 'part' ? `${item.name}` : `${item.year}, ${item.brand}, ${item.model}`}
                                                                 </h4>
                                                                 <p className="vin">Chassis No. {item.vin}</p>
                                                                 <p className="mb-details">

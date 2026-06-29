@@ -6,6 +6,8 @@ import {
   megaMenuData,
   tempPagesA,
   busesLinks,
+  bikesLinks,
+  partsLinks,
   moreLinks,
   moreNavLinks, // Maira Edit
 } from "@/data/menu";
@@ -521,6 +523,86 @@ export default function Nav() {
 
         <ul className="dropdown">
           {busesLinks.map((link, index) => (
+            <li key={index}>
+              <Link className={isMenuActive(link) ? "menuActive" : ""} href={link.href}>
+                {link.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </li>
+
+      {/* BIKES */}
+      <li className="current-dropdown">
+        <div className="nav-parent" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Link
+            href="/bikes"
+            className={isMenuActive(bikesLinks) || pathname === "/bikes" ? "menuActive" : ""}
+            style={topLinkStyle}
+          >
+            Bikes
+          </Link>
+
+          <button
+            type="button"
+            aria-label="Open Bikes menu"
+            className="nav-arrow"
+            onClick={toggleDropdown}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              lineHeight: 1,
+              color: "white",
+            }}
+          >
+            <i className="fa-solid fa-angle-down" />
+          </button>
+        </div>
+
+        <ul className="dropdown">
+          {bikesLinks.map((link, index) => (
+            <li key={index}>
+              <Link className={isMenuActive(link) ? "menuActive" : ""} href={link.href}>
+                {link.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </li>
+
+      {/* PARTS */}
+      <li className="current-dropdown">
+        <div className="nav-parent" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Link
+            href="/parts"
+            className={isMenuActive(partsLinks) || pathname === "/parts" ? "menuActive" : ""}
+            style={topLinkStyle}
+          >
+            Parts
+          </Link>
+
+          <button
+            type="button"
+            aria-label="Open Parts menu"
+            className="nav-arrow"
+            onClick={toggleDropdown}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              lineHeight: 1,
+              color: "white",
+            }}
+          >
+            <i className="fa-solid fa-angle-down" />
+          </button>
+        </div>
+
+        <ul className="dropdown">
+          {partsLinks.map((link, index) => (
             <li key={index}>
               <Link className={isMenuActive(link) ? "menuActive" : ""} href={link.href}>
                 {link.title}

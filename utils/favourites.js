@@ -10,7 +10,8 @@ export const getFavourites = (stockType = 'carpool') => {
 };
 
 const getStockType = (urlType) => {
-  if (['cars', 'trucks', 'buses', 'suvs'].includes(urlType)) return 'carpool';
+  const type = String(urlType || '').toLowerCase();
+  if (['cars', 'trucks', 'buses', 'suvs', 'bikes', 'parts'].includes(type)) return 'carpool';
   return 'encar';
 };
 

@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/utils/api";
 import { usePathname } from "next/navigation";
 import { isFavourite, toggleFavourite } from "@/utils/favourites";
+import { addRecentlyViewed } from "@/utils/recentlyViewed";
 import ShareModal from "../common/ShareModal";
 const areaMap = {
   'Seoul': '서울', 'Busan': '부산', 'Incheon': '인천', 'Daegu': '대구', 'Daejeon': '대전',
@@ -127,8 +128,9 @@ export default function EncarSingle({ carItem }) {
   useEffect(() => {
     if (carItem?.id) {
       setIsFav(isFavourite(carItem.id, urlType));
+      addRecentlyViewed("other", carItem, urlType);
     }
-  }, [carItem?.id, urlType]);
+  }, [carItem, urlType]);
 
   const handleFavourite = (e) => {
     e.preventDefault();

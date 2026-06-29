@@ -252,6 +252,7 @@ export default function Sidebar({ onFilterChange, makes = [], makeIds = [], filt
               </div>
             </div>
 
+            {!hiddenFilters.includes('mileage') && (
             <div className="col-lg-12">
               <div className="price-box">
                 <h6 className="title">Mileage</h6>
@@ -297,6 +298,7 @@ export default function Sidebar({ onFilterChange, makes = [], makeIds = [], filt
                 </div>
               </div>
             </div>
+            )}
 
             <div className="col-lg-12">
               <div className="price-box">
@@ -555,6 +557,7 @@ export default function Sidebar({ onFilterChange, makes = [], makeIds = [], filt
               </div>
             )}
 
+            {(!hiddenFilters.includes('exterior_color')) && (
             <div className="col-lg-12">
               <div className="form_boxes">
                 <label>Exterior Color</label>
@@ -565,6 +568,7 @@ export default function Sidebar({ onFilterChange, makes = [], makeIds = [], filt
                 />
               </div>
             </div>
+            )}
 
             {(filterOptions.doors?.length > 0) && !hiddenFilters.includes('doors') && (
               <div className="col-lg-12">

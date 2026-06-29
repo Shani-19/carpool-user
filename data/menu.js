@@ -99,6 +99,16 @@ export const busesLinks = [
   { href: "/buses", title: "Daewoo" },
   { href: "/buses", title: "Forklift" },
 ];
+export const bikesLinks = [
+  { href: "/bikes", title: "Daewoo" },
+  { href: "/bikes", title: "Forklift" },
+  { href: "/bikes", title: "Hyundai" },
+];
+export const partsLinks = [
+  { href: "/parts", title: "Engine" },
+  { href: "/parts", title: "Body" },
+  { href: "/parts", title: "Electrical" },
+];
 // export const pages = [
 export const tempPagesA = [
   {

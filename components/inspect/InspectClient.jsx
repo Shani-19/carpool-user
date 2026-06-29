@@ -19,9 +19,31 @@ const fmtNumber = (val) => {
   return n.toLocaleString("en-US");
 };
 
-const CARS_IMG_BASE =
+let IMG_BASE =
   process.env.NEXT_PUBLIC_CARS_IMG_SRC_S3 ||
   "https://media.carpoolkr.com/assets/car/cars";
+
+/* ── Detect API endpoint from slug prefix ── */
+const detectEndpoint = (slug = "") => {
+  const s = String(slug).toUpperCase();
+  if (s.startsWith("PART")) {
+    IMG_BASE = process.env.NEXT_PUBLIC_PARTS_IMG_SRC_S3;
+    return "parts";
+  }
+  if (s.startsWith("BUS")) {
+    IMG_BASE = process.env.NEXT_PUBLIC_BUSES_IMG_SRC_S3;
+    return "buses";
+  }
+  if (s.startsWith("TRUCK")) {
+    IMG_BASE = process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_S3;
+    return "trucks";
+  }
+  if (s.startsWith("BIKE")) {
+    IMG_BASE = process.env.NEXT_PUBLIC_BIKES_IMG_SRC_S3;
+    return "bikes";
+  }
+  return "cars";
+};
 
 const buildCarpoolImageSrc = (mainImage) => {
   // ===== Maira Edit START: image-url-fix =====
@@ -33,7 +55,7 @@ const buildCarpoolImageSrc = (mainImage) => {
     return value;
   }
 
-  const base = String(CARS_IMG_BASE || "").replace(/\/+$/, "");
+  const base = String(IMG_BASE || "").replace(/\/+$/, "");
   const path = value.replace(/^\/+/, "");
 
   return `${base}/${path}`;
@@ -41,11 +63,20 @@ const buildCarpoolImageSrc = (mainImage) => {
 };
 
 const tryCarpool = async (id) => {
-  const res = await getVehicleBySlug(id);
-  const raw = res?.data?.car || res?.data || res;
+  const endpoint = detectEndpoint(id);
+  const res = await getVehicleBySlug(id, endpoint);
+  // Each endpoint nests its data differently — handle all shapes
+  const raw =
+    res?.data?.car ||
+    res?.data?.bus ||
+    res?.data?.truck ||
+    res?.data?.bike ||
+    res?.data?.part ||
+    res?.data ||
+    res;
   if (raw && (raw.id || raw.slug || raw.name)) {
     /* ===== Maira Edit START: VehiclePortSize Debug ===== */
-    const normalized = normalizeVehicle(raw);
+    const normalized = normalizeVehicle(raw, endpoint);
     /* raw.port_size_id does not exist on this API; raw.port_size = 2 (integer) IS the size ID */
     normalized.port_size_id =
       raw.port_size_id ??
@@ -159,13 +190,15 @@ export default function InspectClient({ carId, stock }) {
     vehicle?.sku
       ? `#${vehicle.sku}`
       : vehicle?.car_num
-      ? `#${vehicle.car_num}`
-      : null,
+        ? `#${vehicle.car_num}`
+        : null,
     vehicle?.vehicle_type || null,
     vehicle?.fuel_type || null,
     vehicle?.transmission || null,
     vehicle?.odometer ? `${fmtNumber(vehicle.odometer)} KM` : null,
     vehicle?.passenger ? `${Number(vehicle.passenger)} seats` : null,
+    vehicle?.color || null,
+    vehicle?.category || null,
   ].filter(Boolean);
 
   /* ===== Maira Edit START: Spacing Fix ===== */
@@ -190,255 +223,255 @@ export default function InspectClient({ carId, stock }) {
       `}</style>
       {/* ===== Maira Edit END ===== */}
       <section className="inventory-section inspect-booking-section" style={{ background: "#fff" }}>
-      <div
-        style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px 48px" }}
-      >
-        {/* TOP BAR */}
-        {/* ===== Maira Edit START: Payload Fix 2 ===== */}
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "20px 0 18px",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
+          style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px 48px" }}
         >
-        {/* ===== Maira Edit END ===== */}
-          <button
-            onClick={() => router.back()}
-            style={{
-              background: "none",
-              border: "1px solid #aaa",
-              borderRadius: 4,
-              padding: "7px 16px",
-              cursor: "pointer",
-              fontSize: 13,
-              color: "#444",
-            }}
-          >
-            ← Back to detail page
-          </button>
-          <button
-            onClick={() =>
-              document
-                .getElementById("booking-submit-btn")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-            style={{
-              background: "none",
-              border: "1px solid #c0392b",
-              borderRadius: 4,
-              padding: "7px 16px",
-              cursor: "pointer",
-              fontSize: 13,
-              color: "#c0392b",
-            }}
-          >
-            Booking Request →
-          </button>
-        </div>
-
-        {/* LOADING */}
-        {loading && (
-          <div style={{ textAlign: "center", padding: "48px 0" }}>
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        )}
-
-        {/* CAR NOT FOUND */}
-        {!loading && !vehicle && (
+          {/* TOP BAR */}
+          {/* ===== Maira Edit START: Payload Fix 2 ===== */}
           <div
             style={{
-              padding: "24px",
-              background: "#f9f9f9",
-              borderRadius: 8,
-              textAlign: "center",
-              marginBottom: 24,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "20px 0 18px",
+              flexWrap: "wrap",
+              gap: 8,
             }}
           >
-            <h4 style={{ marginBottom: 8 }}>Car details could not be loaded</h4>
-            <p style={{ color: "#777", marginBottom: 0 }}>
-              We couldn&apos;t fetch this vehicle right now. You can still
-              submit a booking request below.
-            </p>
-          </div>
-        )}
-
-        {/* CAR INFO ROW */}
-        {!loading && vehicle && (
-          <>
-            <div
+            {/* ===== Maira Edit END ===== */}
+            <button
+              onClick={() => router.back()}
               style={{
-                display: "flex",
-                gap: 20,
-                alignItems: "flex-start",
-                marginBottom: 20,
-                flexWrap: "wrap",
+                background: "none",
+                border: "1px solid #aaa",
+                borderRadius: 4,
+                padding: "7px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                color: "#444",
               }}
             >
-              {/* Thumbnail */}
+              ← Back to detail page
+            </button>
+            <button
+              onClick={() =>
+                document
+                  .getElementById("booking-submit-btn")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              style={{
+                background: "none",
+                border: "1px solid #c0392b",
+                borderRadius: 4,
+                padding: "7px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                color: "#c0392b",
+              }}
+            >
+              Booking Request →
+            </button>
+          </div>
+
+          {/* LOADING */}
+          {loading && (
+            <div style={{ textAlign: "center", padding: "48px 0" }}>
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          )}
+
+          {/* CAR NOT FOUND */}
+          {!loading && !vehicle && (
+            <div
+              style={{
+                padding: "24px",
+                background: "#f9f9f9",
+                borderRadius: 8,
+                textAlign: "center",
+                marginBottom: 24,
+              }}
+            >
+              <h4 style={{ marginBottom: 8 }}>Car details could not be loaded</h4>
+              <p style={{ color: "#777", marginBottom: 0 }}>
+                We couldn&apos;t fetch this vehicle right now. You can still
+                submit a booking request below.
+              </p>
+            </div>
+          )}
+
+          {/* CAR INFO ROW */}
+          {!loading && vehicle && (
+            <>
               <div
                 style={{
-                  width: 110,
-                  height: 74,
-                  position: "relative",
-                  flexShrink: 0,
-                  borderRadius: 4,
-                  overflow: "hidden",
-                  background: "#f0f0f0",
-                  border: "1px solid #e0e0e0",
+                  display: "flex",
+                  gap: 20,
+                  alignItems: "flex-start",
+                  marginBottom: 20,
+                  flexWrap: "wrap",
                 }}
               >
-                <Image
-                  src={imgSrc}
-                  alt={vehicle?.name || "vehicle"}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  onError={() =>
-                    setImgSrc("/images/resource/about-inner1-5.jpg")
-                  }
-                  unoptimized
-                />
-              </div>
-
-              {/* Car name + specs */}
-              <div style={{ flex: 1, minWidth: 180 }}>
-                <h3
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 700,
-                    marginBottom: 6,
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {vehicle?.name}
-                </h3>
-                {specTags.length > 0 && (
-                  <p style={{ fontSize: 12, color: "#666", marginBottom: 0 }}>
-                    {specTags.map((tag, i) => (
-                      <span key={i}>
-                        {i > 0 && (
-                          <span style={{ margin: "0 5px", color: "#aaa" }}>
-                            •
-                          </span>
-                        )}
-                        {tag}
-                      </span>
-                    ))}
-                  </p>
-                )}
-              </div>
-
-              {/* Price */}
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                {/* ===== Maira Edit START: Payload Fix — guard null price so it shows "—" not "0" ===== */}
+                {/* Thumbnail */}
                 <div
                   style={{
-                    fontSize: 26,
-                    fontWeight: 700,
-                    color: "#c0392b",
-                    lineHeight: 1,
+                    width: 110,
+                    height: 74,
+                    position: "relative",
+                    flexShrink: 0,
+                    borderRadius: 4,
+                    overflow: "hidden",
+                    background: "#f0f0f0",
+                    border: "1px solid #e0e0e0",
                   }}
                 >
-                  {(finalPrice ?? price) != null ? (
-                    <>
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>USD </span>
-                      {/* ===== Maira Edit START: dynamic-price-header ===== */}
-                      {displayPrice.toLocaleString()}
-                      {/* ===== Maira Edit END ===== */}
-                    </>
-                  ) : (
-                    <span style={{ fontSize: 14, fontWeight: 500, color: "#999" }}>
-                      Price on request
-                    </span>
+                  <Image
+                    src={imgSrc}
+                    alt={vehicle?.name || "vehicle"}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    onError={() =>
+                      setImgSrc("/images/resource/about-inner1-5.jpg")
+                    }
+                    unoptimized
+                  />
+                </div>
+
+                {/* Car name + specs */}
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <h3
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 700,
+                      marginBottom: 6,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {vehicle?.name}
+                  </h3>
+                  {specTags.length > 0 && (
+                    <p style={{ fontSize: 12, color: "#666", marginBottom: 0 }}>
+                      {specTags.map((tag, i) => (
+                        <span key={i}>
+                          {i > 0 && (
+                            <span style={{ margin: "0 5px", color: "#aaa" }}>
+                              •
+                            </span>
+                          )}
+                          {tag}
+                        </span>
+                      ))}
+                    </p>
                   )}
                 </div>
-                {/* ===== Maira Edit END ===== */}
-                {/* ===== Maira Edit START: dynamic-label-header ===== */}
-                <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>
-                  {displayLabel}
+
+                {/* Price */}
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  {/* ===== Maira Edit START: Payload Fix — guard null price so it shows "—" not "0" ===== */}
+                  <div
+                    style={{
+                      fontSize: 26,
+                      fontWeight: 700,
+                      color: "#c0392b",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {(finalPrice ?? price) != null ? (
+                      <>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>USD </span>
+                        {/* ===== Maira Edit START: dynamic-price-header ===== */}
+                        {displayPrice.toLocaleString()}
+                        {/* ===== Maira Edit END ===== */}
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 14, fontWeight: 500, color: "#999" }}>
+                        Price on request
+                      </span>
+                    )}
+                  </div>
+                  {/* ===== Maira Edit END ===== */}
+                  {/* ===== Maira Edit START: dynamic-label-header ===== */}
+                  <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>
+                    {displayLabel}
+                  </div>
+                  {/* ===== Maira Edit END ===== */}
                 </div>
-                {/* ===== Maira Edit END ===== */}
               </div>
-            </div>
 
-            {/* GREETING (logged-in only) */}
-            {user && (
-              <div style={{ marginBottom: 16 }}>
-                <h5 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
-                  Hello, {user.name}
-                </h5>
-                <p style={{ color: "#555", fontSize: 13, marginBottom: 0 }}>
-                  Thank you for your interest in this item!
-                  <br />
-                  Please fill in your consignee information and document
-                  delivery address after checking the quotation below.
-                </p>
-              </div>
-            )}
+              {/* GREETING (logged-in only) */}
+              {user && (
+                <div style={{ marginBottom: 16 }}>
+                  <h5 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
+                    Hello, {user.name}
+                  </h5>
+                  <p style={{ color: "#555", fontSize: 13, marginBottom: 0 }}>
+                    Thank you for your interest in this item!
+                    <br />
+                    Please fill in your consignee information and document
+                    delivery address after checking the quotation below.
+                  </p>
+                </div>
+              )}
 
-            <hr style={{ margin: "0 0 24px", borderColor: "#e0e0e0" }} />
-          </>
-        )}
+              <hr style={{ margin: "0 0 24px", borderColor: "#e0e0e0" }} />
+            </>
+          )}
 
-        {/* ===== Maira Edit START: Payload Fix 2 ===== */}
-        {/* BOOKING FORM or GUEST LOGIN WALL */}
-        {!user ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: "32px 0 40px" }}>
-            <div
-              style={{
-                background: "#fff",
-                border: "1px solid #e0e0e0",
-                borderRadius: 8,
-                padding: "40px 32px",
-                textAlign: "center",
-                maxWidth: 420,
-                width: "100%",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-              }}
-            >
-              <h4 style={{ fontWeight: 700, marginBottom: 12, color: "#222" }}>Login Required</h4>
-              <p style={{ color: "#555", fontSize: 14, marginBottom: 24 }}>
-                Please log in to view and submit your booking request.
-              </p>
-              <Link
-                href={`/login?redirect=${encodeURIComponent(
-                  stock ? `/inspect/${carId}?stock=${stock}` : `/inspect/${carId}`
-                )}`}
+          {/* ===== Maira Edit START: Payload Fix 2 ===== */}
+          {/* BOOKING FORM or GUEST LOGIN WALL */}
+          {!user ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "32px 0 40px" }}>
+              <div
                 style={{
-                  display: "block",
-                  background: "#c0392b",
-                  color: "#fff",
-                  padding: "12px 24px",
-                  borderRadius: 6,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  textDecoration: "none",
+                  background: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 8,
+                  padding: "40px 32px",
+                  textAlign: "center",
+                  maxWidth: 420,
+                  width: "100%",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
                 }}
               >
-                Login to Continue
-              </Link>
+                <h4 style={{ fontWeight: 700, marginBottom: 12, color: "#222" }}>Login Required</h4>
+                <p style={{ color: "#555", fontSize: 14, marginBottom: 24 }}>
+                  Please log in to view and submit your booking request.
+                </p>
+                <Link
+                  href={`/login?redirect=${encodeURIComponent(
+                    stock ? `/book/${carId}?stock=${stock}` : `/book/${carId}`
+                  )}`}
+                  style={{
+                    display: "block",
+                    background: "#c0392b",
+                    color: "#fff",
+                    padding: "12px 24px",
+                    borderRadius: 6,
+                    fontWeight: 700,
+                    fontSize: 15,
+                    textDecoration: "none",
+                  }}
+                >
+                  Login to Continue
+                </Link>
+              </div>
             </div>
-          </div>
-        ) : (
-          /* ===== Maira Edit START: shipping-callback-prop ===== */
-          <InspectForm
-            carId={carId}
-            vehicleId={vehicle?.id ?? null}
-            stock={resolvedFrom || stock || ""}
-            vehiclePrice={finalPrice ?? price ?? null}
-            vehiclePortSizeId={vehicle?.port_size_id ?? null}
-            onShippingChange={setShippingInfo}
-          />
-          /* ===== Maira Edit END ===== */
-        )}
-        {/* ===== Maira Edit END ===== */}
-      </div>
-    </section>
+          ) : (
+            /* ===== Maira Edit START: shipping-callback-prop ===== */
+            <InspectForm
+              carId={carId}
+              vehicleId={vehicle?.id ?? null}
+              stock={resolvedFrom || stock || ""}
+              vehiclePrice={finalPrice ?? price ?? null}
+              vehiclePortSizeId={vehicle?.port_size_id ?? null}
+              onShippingChange={setShippingInfo}
+            />
+            /* ===== Maira Edit END ===== */
+          )}
+          {/* ===== Maira Edit END ===== */}
+        </div>
+      </section>
     </>
   );
 }

@@ -526,8 +526,8 @@ export default function InspectForm({ carId, vehicleId, stock, vehiclePrice, veh
 
   /* Redirect param for guest login */
   const callbackUrl = stock
-    ? `/inspect/${carId}?stock=${encodeURIComponent(stock)}`
-    : `/inspect/${carId}`;
+    ? `/book/${carId}?stock=${encodeURIComponent(stock)}`
+    : `/book/${carId}`;
 
   // ===== Maira Edit START: quotation-ready-state =====
   const isQuotationReady =

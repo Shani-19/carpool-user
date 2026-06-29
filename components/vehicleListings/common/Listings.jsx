@@ -29,7 +29,9 @@ const getImageBase = (endpoint, stockType) => {
     /* ===== Maira Edit END: Stock Switch ===== */
     const e = String(endpoint || "").toLowerCase();
     if (e === "buses") return process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW;
+    if (e === "bikes") return process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW;
     if (e === "trucks") return process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW;
+    if (e === "parts") return process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW;
     return process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW; // cars + suvs fallback
 };
 
@@ -66,6 +68,7 @@ const normalizeVehicle = (v = {}, endpoint = "cars") => {
         // buses
         color: v.color ?? null,
         weight: v.weight ?? null,
+        // bikes
 
         // trucks
         cabin_type: v.cabin_type ?? null,
@@ -74,6 +77,13 @@ const normalizeVehicle = (v = {}, endpoint = "cars") => {
 
         passenger: v.passenger ?? null,
         main_image: v.main_image ?? null,
+
+        // parts
+        make: v.make ?? null,
+        make_name: v.make_name ?? null,
+        model: v.model ?? null,
+        model_name: v.model_name ?? null,
+        category: v.category ?? null,
 
         _endpoint: endpoint,
     };
@@ -263,6 +273,15 @@ export default function Listings({
             ].filter(Boolean);
         }
 
+        if (e === "bikes") {
+            return [
+                v.engine_volume != null ? `${fmtNumber(v.engine_volume)} CC` : null,
+                v.color || null,
+                v.odometer != null ? `${v.odometer} Km` : null,
+                v.fuel_type || null,
+            ].filter(Boolean);
+        }
+
         // cars/suvs
         return [
             v.engine_volume != null ? `${fmtNumber(v.engine_volume)} CC` : null,
@@ -279,7 +298,9 @@ export default function Listings({
     const hiddenFilters = useMemo(() => {
         if (endpoint === 'suvs') return ['vehicle_type'];
         if (endpoint === 'buses') return ['model_detail', 'doors', 'drive_type', 'vehicle_type', 'axle_type', 'cabin_type', 'loading_weight', 'category'];
+        if (endpoint === 'bikes') return ['model_detail', 'doors', 'fuel_type', 'vehicle_type', 'engine_volume', 'passenger'];
         if (endpoint === 'trucks') return ['model_detail', 'doors', 'drive_type', 'vehicle_type', 'engine_volume', 'passenger'];
+        if (endpoint === 'parts') return ['model_detail', 'doors', 'drive_type', 'vehicle_type', 'axle_type', 'cabin_type', 'loading_weight', 'engine_volume', 'passenger', 'fuel_type', 'transmission', 'mileage', 'exterior_color'];
         return [];
     }, [endpoint]);
 
@@ -716,38 +737,38 @@ export default function Listings({
                                                                     </Link>
                                                                 </h4>
 
-                                                                <div className="text mb-1">VIN No. {elm.vin || "-"}</div>
+                                                                <div className="text mb-1">{endpoint === 'parts' ? 'Part No.' : 'VIN No.'} {elm.vin || "-"}</div>
 
                                                                 <div className="inspection-sec mb-1">
                                                                     <div className="inspection-box gap-0 text-nowrap">
                                                                         <span className="icon"></span>
                                                                         <div className="info">
-                                                                            <span>Mileage</span>
-                                                                            <small>{elm.odometer ? `${fmtNumber(elm.odometer)} Km` : "-"}</small>
+                                                                            <span>{endpoint === 'parts' ? 'Maker' : 'Mileage'}</span>
+                                                                            <small>{endpoint === 'parts' ? (elm.make_name || elm.make || "-") : (elm.odometer ? `${fmtNumber(elm.odometer)} Km` : "-")}</small>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="inspection-box gap-0 text-nowrap">
                                                                         <span className="icon"></span>
                                                                         <div className="info">
-                                                                            <span>Fuel Type</span>
-                                                                            <small>{elm.fuel_type || "-"}</small>
+                                                                            <span>{endpoint === 'parts' ? 'Model' : 'Fuel Type'}</span>
+                                                                            <small>{endpoint === 'parts' ? (elm.model_name || elm.model || "-") : (elm.fuel_type || "-")}</small>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="inspection-box gap-0 text-nowrap">
                                                                         <span className="icon"></span>
                                                                         <div className="info">
-                                                                            <span>Transmission</span>
-                                                                            <small>{elm.transmission || "-"}</small>
+                                                                            <span>{endpoint === 'parts' ? 'Category' : 'Transmission'}</span>
+                                                                            <small>{endpoint === 'parts' ? (elm.category || "-") : (elm.transmission || "-")}</small>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="inspection-box gap-0 text-nowrap">
                                                                         <span className="icon"></span>
                                                                         <div className="info">
-                                                                            <span>Year</span>
-                                                                            <small>{elm.year ?? "-"}</small>
+                                                                            <span>{endpoint === 'parts' ? 'Color' : 'Year'}</span>
+                                                                            <small>{endpoint === 'parts' ? (elm.color || "-") : (elm.year ?? "-")}</small>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -785,9 +806,9 @@ export default function Listings({
                                                                 )}
 
                                                                 {/* ===== Edited by Maira START ===== */}
-                                                                <Link href={`/inspect/${elm.slug}`} className="button" target="_blank">
-                                                                    Book Now
-                                                                {/* ===== Edited by Maira END ===== */}
+                                                                <Link href={`/${endpoint}/${elm.slug}`} className="button" target="_blank">
+                                                                    View Detail
+                                                                    {/* ===== Edited by Maira END ===== */}
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 14 14" fill="none">
                                                                         <g clipPath="url(#clip0_989_6940)">
                                                                             <path d="M13.6106 0H5.05509C4.84013 0 4.66619 0.173943 4.66619 0.388901C4.66619 0.603859 4.84013 0.777802 5.05509 0.777802H12.6719L0.113453 13.3362C-0.0384687 13.4881 -0.0384687 13.7342 0.113453 13.8861C0.189396 13.962 0.288927 14 0.388422 14C0.487917 14 0.587411 13.962 0.663391 13.8861L13.2218 1.3277V8.94447C13.2218 9.15943 13.3957 9.33337 13.6107 9.33337C13.8256 9.33337 13.9996 9.15943 13.9996 8.94447V0.388901C13.9995 0.173943 13.8256 0 13.6106 0Z" fill="#405FF2" />

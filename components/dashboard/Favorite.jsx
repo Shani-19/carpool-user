@@ -31,19 +31,47 @@ export default function Favorite() {
         const cars = favs.filter(f => f.type === 'cars').map(f => f.slug);
         const trucks = favs.filter(f => f.type === 'trucks').map(f => f.slug);
         const buses = favs.filter(f => f.type === 'buses').map(f => f.slug);
+        const bikes = favs.filter(f => f.type === 'bikes').map(f => f.slug);
+        const parts = favs.filter(f => f.type === 'parts').map(f => f.slug);
 
-        const payload = { cars, trucks, buses, page: 1, per_page: 50 };
+        const results = [];
 
+        // Fetch cars/trucks/buses via the shared favourite-list endpoint
         if (cars.length > 0 || trucks.length > 0 || buses.length > 0) {
+          const payload = { cars, trucks, buses, page: 1, per_page: 50 };
           const res = await api.post('/favourite-list', payload);
           if (res.data?.success && res.data?.vehicles) {
-            setCarpoolStock(res.data.vehicles);
-          } else {
-            setCarpoolStock([]);
+            results.push(...res.data.vehicles);
           }
-        } else {
-          setCarpoolStock([]);
         }
+
+        // Fetch bikes individually via /bikes/{slug}
+        if (bikes.length > 0) {
+          const bikePromises = bikes.map(slug =>
+            api.get(`/bikes/${slug}`).then(res => {
+              const data = res.data?.data?.bike || res.data?.bike || res.data;
+              if (data && data.slug) return { ...data, _type: 'bikes' };
+              return null;
+            }).catch(() => null)
+          );
+          const bikeResults = await Promise.all(bikePromises);
+          results.push(...bikeResults.filter(Boolean));
+        }
+
+        // Fetch parts individually via /parts/{slug}
+        if (parts.length > 0) {
+          const partPromises = parts.map(slug =>
+            api.get(`/parts/${slug}`).then(res => {
+              const data = res.data?.data?.part || res.data?.part || res.data;
+              if (data && data.slug) return { ...data, _type: 'parts' };
+              return null;
+            }).catch(() => null)
+          );
+          const partResults = await Promise.all(partPromises);
+          results.push(...partResults.filter(Boolean));
+        }
+
+        setCarpoolStock(results);
       } else {
         const favs = getFavourites("encar");
         const otherIds = favs.map(f => f.id);
@@ -84,7 +112,15 @@ export default function Favorite() {
     let urlType = "cars";
     let imgPath = process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/car/cars";
 
-    if (car.slug?.startsWith('TRUCK') || car.vehicle_type === 'truck') {
+    if (car._type === 'bikes' || car.slug?.startsWith('BIKE') || car.vehicle_type === 'Bike') {
+      routePrefix = "/bikes";
+      urlType = "bikes";
+      imgPath = process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/bike/thumbnail/";
+    } else if (car._type === 'parts' || car.slug?.startsWith('PART') || car.vehicle_type === 'Part') {
+      routePrefix = "/parts";
+      urlType = "parts";
+      imgPath = process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/part/thumbnail/";
+    } else if (car.slug?.startsWith('TRUCK') || car.vehicle_type === 'truck') {
       routePrefix = "/trucks";
       urlType = "trucks";
       imgPath = process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/car/cars";
@@ -95,9 +131,9 @@ export default function Favorite() {
     }
 
     const mainImage = car.main_image ? `${imgPath}${car.main_image}` : "/images/resource/inventory1-6.png";
-    const brandName = car.make?.name || "Unknown";
-    const modelName = car.model?.name || "Unknown";
-    const year = car.model_year || car.year || "Unknown";
+    const brandName = car.make?.name || car.make_name || car.make || "Unknown";
+    const modelName = car.model?.name || car.model_name || car.model || "Unknown";
+    const year = car.model_year || car.year || car.color || "Unknown";
 
     return (
       <a
@@ -120,15 +156,19 @@ export default function Favorite() {
             </div>
             <div className="car-info">
               <h4 className="car-title">
-                {year}, {brandName}, {modelName}
+                {car.name}
               </h4>
-              <p className="vin">Chassis No. {car.vin}</p>
+              <p className="vin">{urlType === 'parts' ? 'Part No.' : 'Chassis No.'} {car.vin}</p>
               <p className="mb-details">
-                {car.transmission ? car.transmission : ''}
-                {car.fuel?.name ? ' | ' + car.fuel.name : ''}
+                {brandName}
+                {' | ' + modelName}
+                {car.transmission ? ' | ' + car.transmission : ''}
+                {car.fuel_type ? ' | ' + car.fuel_type : ''}
                 {car.drive_type ? ' | ' + car.drive_type : ''}
-                {car.type?.name ? ' | ' + car.type.name : ''}
+                {car.vehicle_type ? ' | ' + car.vehicle_type : ''}
                 {car.passenger ? ` | ${car.passenger} Seats` : ''}
+                {car.ca ? ` | ${car.ca.name}` : ''}
+                {car.color ? ` | ${car.color}` : ''}
               </p>
               <p className="mb-details mt-2">
                 {car.engine_volume && <span className="badge bg-light text-danger me-1 fw-normal">{car.engine_volume} CC</span>}

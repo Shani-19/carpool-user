@@ -5,8 +5,8 @@ import HeaderDashboard from "@/components/headers/HeaderDashboard";
 import React from "react";
 
 export const metadata = {
-  title: "Dashboard || Boxcar - React Nextjs Car Template",
-  description: "Boxcar - React Nextjs Car Template",
+  title: "Dashboard",
+  description: "Carpool Korea",
 };
 export default function DashboardPage() {
   return (
