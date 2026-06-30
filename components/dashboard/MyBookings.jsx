@@ -25,7 +25,12 @@ export default function MyBookings() {
     brand: "",
     model: ""
   });
-
+  // Number formatter function
+  const fmtNumber = (val) => {
+    const n = Number(val);
+    if (Number.isNaN(n)) return "0";
+    return n.toLocaleString("en-US");
+  };
   // Load all bookings initially
   useEffect(() => {
     if (user && !authLoading) {
@@ -75,9 +80,13 @@ export default function MyBookings() {
             transmission: vehicle?.transmission || null,
             seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : null,
             fuelType: vehicle?.fuel?.name || null,
-            engine: vehicle?.engine_volume ? `${vehicle.engine_volume} CC` : null,
-            mileage: vehicle?.odometer ? `${vehicle.odometer} Km` : null,
-            bookingDate: booking.created_at ? new Date(booking.created_at).toLocaleDateString() : null,
+            engine: vehicle?.engine_volume ? `${fmtNumber(vehicle.engine_volume)} CC` : null,
+            mileage: vehicle?.odometer ? `${fmtNumber(vehicle.odometer)} Km` : null,
+            bookingDate: booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            }) : null,
             bookingNo: booking.booking_num || null,
             status: booking.status == 'Complete' ? 'Completed' : booking.status || null,
             vehicleType: vehicleType

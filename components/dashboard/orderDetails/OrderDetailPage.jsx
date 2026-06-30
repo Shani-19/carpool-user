@@ -47,6 +47,13 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
     }
   }, [order_num, orderData]);
 
+  // Number formatter function
+  const fmtNumber = (val) => {
+    const n = Number(val);
+    if (Number.isNaN(n)) return "0";
+    return n.toLocaleString("en-US");
+  };
+
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
@@ -179,14 +186,14 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
           const xhr = new XMLHttpRequest();
           xhr.open('PUT', presignedUrl, true);
           xhr.setRequestHeader('Content-Type', file.type);
-          
+
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
               const percentComplete = Math.round((e.loaded / e.total) * 100);
               setClaimUploadProgress(prev => ({ ...prev, [file.name]: percentComplete }));
             }
           };
-          
+
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve();
@@ -194,7 +201,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
               reject(new Error(`S3 upload failed with status ${xhr.status}`));
             }
           };
-          
+
           xhr.onerror = () => reject(new Error('Network error during upload'));
           xhr.send(file);
         });
@@ -255,11 +262,32 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
   const transformOrderData = (booking) => {
     if (!booking) return null;
 
-    const vehicle = booking.car || booking.bus || booking.truck;
-    const vehicleType = booking.car ? 'Car' : booking.bus ? 'Bus' : 'Truck';
-    const imgPath = booking.car ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW :
-      booking.bus ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW :
-        process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW;
+    const vehicle =
+      booking.car ||
+      booking.bus ||
+      booking.truck ||
+      booking.bike ||
+      booking.part;
+
+    const vehicleType = booking.car
+      ? "Car"
+      : booking.bus
+        ? "Bus"
+        : booking.truck
+          ? "Truck"
+          : booking.bike
+            ? "Bike"
+            : "Part";
+
+    const imgPath = booking.car
+      ? process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW
+      : booking.bus
+        ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW
+        : booking.truck
+          ? process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW
+          : booking.bike
+            ? process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW
+            : process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW;
 
     let finalPrice = vehicle.discount_price == 'NULL' ? vehicle.price : vehicle.price - vehicle.discount_price;
     const formattedPrice = finalPrice.toLocaleString('en-US');
@@ -267,18 +295,22 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
     return {
       id: booking.id,
       productImage: vehicle?.main_image ? imgPath + vehicle.main_image : "/images/resource/add-car1.jpg",
-      brand: vehicle?.make?.name || 'Unknown',
-      model: vehicle?.model?.name || 'Unknown',
-      year: vehicle?.model_year || 'Unknown',
-      vin: vehicle?.vin || 'Unknown',
-      driveType: vehicle?.drive_type || '',
-      bodyType: vehicle?.type?.name || vehicle?.ca?.name || '-',
-      transmission: vehicle?.transmission || 'Unknown',
-      seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : '',
-      fuelType: vehicle?.fuel?.name || 'Unknown',
-      engine: vehicle?.engine_volume ? `${vehicle.engine_volume} CC` : 'Unknown',
-      mileage: vehicle?.odometer ? `${vehicle.odometer} Km` : 'Unknown',
-      status: booking.status === 'Complete' ? 'Completed' : booking.status || 'Unknown',
+      brand: vehicle?.make?.name || null,
+      model: vehicle?.model?.name || null,
+      modeld: vehicle?.modeld?.name || null,
+      year: vehicle?.model_year || null,
+      name: vehicle?.name || null,
+      vin: vehicle?.vin || null,
+      vc: vehicle?.vc || null,
+      inspection: vehicle?.inspection?.qr_code || null,
+      driveType: vehicle?.drive_type || null,
+      bodyType: vehicle?.type?.name || vehicle?.ca?.name || null,
+      transmission: vehicle?.transmission || null,
+      seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : null,
+      fuelType: vehicle?.fuel?.name || null,
+      engine: vehicle?.engine_volume ? `${fmtNumber(vehicle.engine_volume)} CC` : null,
+      mileage: vehicle?.odometer ? `${fmtNumber(vehicle.odometer)} Km` : null,
+      status: booking.status === 'Complete' ? 'Completed' : booking.status || null,
       vehicleType: vehicleType,
       price: formattedPrice,
     };
@@ -340,7 +372,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
 
   const transformedOrders = bookings.map(transformOrderData);
 
-  const totalPayment = orderData.payment_price || '-';
+  const totalPayment = orderData.payment_price ? fmtNumber(orderData.payment_price) : '-';
   const orderNo = orderData.order_tracking_no || 'Unknown';
   const orderDate = orderData.created_at ? new Date(orderData.created_at).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -363,7 +395,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
   const btnConditionB = orderStatusDetail && orderStatusDetail === 'New';
   const btnDisplayCheck = btnConditionA || btnConditionB;
 
-  const vehType = firstBooking?.car || firstBooking?.bus || firstBooking?.truck;
+  const vehType = firstBooking?.car || firstBooking?.bus || firstBooking?.truck || firstBooking?.bike || firstBooking?.part;
   const containerBaseUrl = "https://img.carpoolkr.com/assets/container/";
 
   // cc/ce live in booking_files — collect from single booking or all mul bookings
@@ -428,7 +460,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
               <div>
                 <h3 className="title">Order Details</h3>
                 <div className="text">
-                  This website is the most safe and convenient way for the deal through Carpool Korea.
+                  View complete order information, vehicle details, order status, and important updates in one place.
                 </div>
               </div>
               {!hasClaim && (
@@ -461,7 +493,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                         </div>
 
                         <div className="info-item mb-1 pb-1 text-start">
-                          <strong>Vehicle Types:</strong>
+                          <strong>Vehicle Categories:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             {Array.from(new Set(transformedOrders.map(b => b.vehicleType))).map(type => (
                               <span key={type} className="badge bg-light text-muted">
@@ -472,12 +504,12 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                         </div>
 
                         <div className="info-item mb-1 pb-1 text-start">
-                          <strong>Invoice Type:</strong>
+                          <strong>Invoice Method:</strong>
                           <span className="text-muted ms-2">{orderType}</span>
                         </div>
 
                         <p className="info-item mb-1 pb-1 text-start">
-                          <strong> Staff Handled by:</strong>
+                          <strong> Order Agent:</strong>
                           <a className="text-muted ms-2 fw-semibold" href="#">
                             {bookedBy}
                           </a>
@@ -490,24 +522,24 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                         </p>
 
                       </div>
-                      <div className="col-md-6">
-                        <div className="info-item mb-1 pb-1 text-end">
-                          <strong>Order Number:</strong>
+                      <div className="col-md-6 text-end">
+                        <div className="info-item mb-1 pb-1">
+                          <strong>Order ID:</strong>
                           <span className="text-muted ms-2">{orderNo}</span>
                         </div>
-                        <div className="info-item mb-1 pb-1 text-end">
+                        <div className="info-item mb-1 pb-1">
                           <strong>Order Date:</strong>
                           <span className="text-muted ms-2">
                             {orderDate}
                           </span>
                         </div>
 
-                        <p className="info-item mb-1 pb-1 text-end">
+                        <p className="info-item mb-1 pb-1">
                           <strong>Customer Code:</strong>
                           <span className="text-muted ms-2">{orderCcode}</span>
                         </p>
 
-                        <div className="info-item mb-1 pb-1 text-end">
+                        <div className="info-item mb-1 pb-1">
                           <strong>Total Payment:</strong>
                           <span className="text-muted ms-2">$ {totalPayment}</span>
                         </div>
@@ -536,10 +568,11 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                           </div>
                           <div className="car-info">
                             <h4 className="car-title">
-                              {item.year}, {item.brand}, {item.model}
+                              {item.vehicleType == 'Part' ? item.name : `${item.year}, ${item.brand}, ${item.model}`}
                             </h4>
                             <p className="vin">Chassis No. {item.vin}</p>
                             <p className="mb-details">
+                              {item.vehicleType == 'Part' ? `${item.year} | ${item.brand} | ${item.model}` : ``}
                               {item.transmission ? item.transmission : ''}
                               {item.fuelType ? ' | ' + item.fuelType : ''}
                               {item.driveType ? ' | ' + item.driveType : ''}
@@ -554,17 +587,47 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                         </div>
                         <div className="mb-card-right-box d-flex flex-column justify-content-between">
                           <p className="d-flex gap-2 align-items-center justify-content-end mb-0">
-                            <span className="d-flex align-items-center">
-                              <small>VCR:</small>
-                              <span>
-                                <button className="btn btn-link btn-xs" type="button" style={{ display: 'inline', color: 'gray' }}>
-                                  <i className="fa fa-download"></i>
-                                </button>
+                            {item.inspection ? (
+                              <span className="d-flex align-items-center">
+                                <small>Inspection Report:</small>
+
+                                <a
+                                  href={`https://inspection.carpoolkr.com/inspection-report-show-qr/${item.inspection}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-link btn-xs pe-0"
+                                  style={{ display: "inline", color: "gray" }}
+                                >
+                                  <i className="fa fa-eye"></i>
+                                </a>
                               </span>
-                            </span>
+                            ) : item.vc ? (
+                              <span className="d-flex align-items-center">
+                                <small>Vehicle Report:</small>
+
+                                <form
+                                  action="https://media.carpoolkr.com/api/vehicle-vcr"
+                                  method="POST"
+                                  target="_blank"
+                                >
+                                  <input type="hidden" name="name" value={item.vc} />
+                                  <input type="hidden" name="type" value="down" />
+
+                                  <button
+                                    className="btn btn-link btn-xs pe-0"
+                                    type="submit"
+                                    style={{ display: "inline", color: "gray" }}
+                                  >
+                                    <i className="fa fa-download"></i>
+                                  </button>
+                                </form>
+                              </span>
+                            ) : (
+                              <span></span>
+                            )}
                           </p>
                           <div className="order-info">
-                            <div className="price_p txt-primary fw-bold fs-6">
+                            <div className="price_p txt-primary fw-bold fs-6 text-end">
                               USD {item.price}
                             </div>
                           </div>
@@ -913,12 +976,12 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                             </div>
                             <div className="col-12">
                               <label className="form-label small fw-bold text-muted mb-1">YouTube Video URL (Optional)</label>
-                              <input 
-                                type="text" 
-                                className="form-control" 
-                                placeholder="https://youtube.com/watch?v=..." 
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="https://youtube.com/watch?v=..."
                                 value={claimForm.ytvideo}
-                                onChange={(e) => setClaimForm({...claimForm, ytvideo: e.target.value})}
+                                onChange={(e) => setClaimForm({ ...claimForm, ytvideo: e.target.value })}
                               />
                             </div>
 
@@ -932,12 +995,12 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                                       <span className="fw-bold">{progress}%</span>
                                     </div>
                                     <div className="progress rounded-pill shadow-sm" style={{ height: '8px', backgroundColor: '#f0f0f0' }}>
-                                      <div 
-                                        className="progress-bar progress-bar-striped progress-bar-animated bg-danger" 
-                                        role="progressbar" 
-                                        style={{ width: `${progress}%` }} 
-                                        aria-valuenow={progress} 
-                                        aria-valuemin="0" 
+                                      <div
+                                        className="progress-bar progress-bar-striped progress-bar-animated bg-danger"
+                                        role="progressbar"
+                                        style={{ width: `${progress}%` }}
+                                        aria-valuenow={progress}
+                                        aria-valuemin="0"
                                         aria-valuemax="100"
                                       ></div>
                                     </div>
@@ -1140,8 +1203,8 @@ function OrderProgressWizard({ currentStep }) {
           box-shadow: 0 4px 12px rgba(34,197,94,0.35);
         }
         .opw-item.is-active .opw-dot {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          border-color: #2563eb;
+          background: linear-gradient(135deg, #3b82f6, #0c768a);
+          border-color: #0c768a;
           color: #fff;
           box-shadow: 0 4px 16px rgba(59,130,246,0.45);
           animation: opw-pulse 1.8s ease-in-out infinite;
@@ -1160,7 +1223,7 @@ function OrderProgressWizard({ currentStep }) {
           color: #9ca3af;
         }
         .opw-item.is-complete .opw-stepnum { color: #16a34a; }
-        .opw-item.is-active   .opw-stepnum { color: #2563eb; }
+        .opw-item.is-active   .opw-stepnum { color: #0c768a; }
 
         .opw-label {
           font-size: 0.65rem;
@@ -1173,7 +1236,7 @@ function OrderProgressWizard({ currentStep }) {
           transition: color 0.35s;
         }
         .opw-item.is-complete .opw-label { color: #16a34a; }
-        .opw-item.is-active   .opw-label { color: #1d4ed8; }
+        .opw-item.is-active   .opw-label { color: #0c768a; }
       `}</style>
 
       <div className="opw-wrapper">
@@ -1224,8 +1287,6 @@ function ShippingInfoTable({ ship }) {
           background: #f8f9fa;
           color: #374151;
           font-weight: 600;
-          white-space: nowrap;
-          width: 22%;
         }
         .sit-table td { color: #1f2937; }
         .sit-table tr:hover td, .sit-table tr:hover th { background: #f0f4ff; }
@@ -1236,9 +1297,10 @@ function ShippingInfoTable({ ship }) {
           .sit-table tr { margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
           .sit-table th { background: #f1f5f9; border: none; border-bottom: 1px solid #e5e7eb; }
           .sit-table td { border: none; border-bottom: 1px solid #f3f4f6; }
-        }
+          }
+          .sit-table td { text-align: center !important;  }
       `}</style>
-      <div style={{ overflowX: 'auto' }}>
+      <div className="table-responsive">
         <table className="sit-table">
           <tbody>
             {rows.map(([th1, td1, th2, td2], i) => (

@@ -36,39 +36,13 @@ export default function Favorite() {
 
         const results = [];
 
-        // Fetch cars/trucks/buses via the shared favourite-list endpoint
-        if (cars.length > 0 || trucks.length > 0 || buses.length > 0) {
-          const payload = { cars, trucks, buses, page: 1, per_page: 50 };
+        // Fetch all vehicles via the shared favourite-list endpoint
+        if (cars.length > 0 || trucks.length > 0 || buses.length > 0 || bikes.length > 0 || parts.length > 0) {
+          const payload = { cars, trucks, buses, bikes, parts, page: 1, per_page: 50 };
           const res = await api.post('/favourite-list', payload);
           if (res.data?.success && res.data?.vehicles) {
             results.push(...res.data.vehicles);
           }
-        }
-
-        // Fetch bikes individually via /bikes/{slug}
-        if (bikes.length > 0) {
-          const bikePromises = bikes.map(slug =>
-            api.get(`/bikes/${slug}`).then(res => {
-              const data = res.data?.data?.bike || res.data?.bike || res.data;
-              if (data && data.slug) return { ...data, _type: 'bikes' };
-              return null;
-            }).catch(() => null)
-          );
-          const bikeResults = await Promise.all(bikePromises);
-          results.push(...bikeResults.filter(Boolean));
-        }
-
-        // Fetch parts individually via /parts/{slug}
-        if (parts.length > 0) {
-          const partPromises = parts.map(slug =>
-            api.get(`/parts/${slug}`).then(res => {
-              const data = res.data?.data?.part || res.data?.part || res.data;
-              if (data && data.slug) return { ...data, _type: 'parts' };
-              return null;
-            }).catch(() => null)
-          );
-          const partResults = await Promise.all(partPromises);
-          results.push(...partResults.filter(Boolean));
         }
 
         setCarpoolStock(results);

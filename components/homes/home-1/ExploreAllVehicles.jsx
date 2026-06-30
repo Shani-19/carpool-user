@@ -4,12 +4,19 @@ import Slider from "react-slick";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://partners.carpoolkr.com/api";
 
 const getMediaUrl = (tabId) => {
-  if (tabId === 'buses') return process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/bus/thumbnail/";
-  if (tabId === 'trucks') return process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/truck/thumbnail/";
+  if (tabId === 'buses')
+    return process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/bus/thumbnail/";
+  if (tabId === 'trucks')
+    return process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/truck/thumbnail/";
+  if (tabId === 'bikes')
+    return process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/bike/thumbnail/";
+  if (tabId === 'parts')
+    return process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/part/thumbnail/";
   return process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW || "https://media.carpoolkr.com/assets/car/thumbnail/";
 };
 
@@ -21,41 +28,53 @@ const formatCarpoolData = (items, tabId) => {
     imageUrl: item.main_image ? `${getMediaUrl(tabId)}${item.main_image}` : '',
     model_year: item.model_year,
     make: item.make,
-    fuel_type: item.fuel_type,
+    fuel_type: item.fuel_type || item.category,
+    drive_type: item.drive_type || item.color || '',
     transmission: item.transmission,
-    odometer: item.odometer,
+    odometer: item.odometer ? `${item.odometer} km` : item.transmission || item.model || '',
     final_price: item.final_price,
     price: item.price,
+    tabId: tabId,
     badge: item.badge || '',
     linkUrl: `/${tabId}/${item.slug || item.id}`
   }));
 };
 
 const formatEncarData = (items, tabId) => {
-  return items.map(item => ({
-    id: item.Id,
-    slug: item.Id,
-    name: `${item.FormYear || ''} ${item.Manufacturer || ''} ${item.Model || ''} ${item.Badge || ''}`.trim(),
-    imageUrl: item.Photo ? `${process.env.NEXT_PUBLIC_ENCAR_IMG_SRC || 'http://ci.encar.com'}${item.Photo}001.jpg?impolicy=heightRate&rh=192&cw=320&ch=192&cg=Center&wtmk=https://ci.encar.com/wt_mark/w_mark_04.png&wtmkg=SouthEast&wtmkw=70&wtmkh=30&t=20251217121649` : '',
-    model_year: item.FormYear,
-    make: item.Manufacturer,
-    fuel_type: item.FuelType || '-',
-    odometer: item.Mileage,
-    final_price: item.Price,
-    transmission: item?.Badge || null,
-    price: null,
-    capacity: item.Capacity || '-',
-    badge: tabId === 'cargo' ? null : item.Badge,
-    detail: tabId === 'cargo' ? item.FormDetail : null,
-    tabId: tabId,
-    linkUrl: `/${tabId}/${item.Id}`
-  }));
+  return items.map(item => {
+    const originalPrice = item.Price || 0;
+    const isLowPrice = typeof originalPrice === 'number' && originalPrice < 500;
+    const finalPrice = typeof originalPrice === 'number' ? originalPrice + 44 : originalPrice;
+
+    return {
+      id: item.Id,
+      slug: item.Id,
+      name: item.name || `${item.FormYear || ''} ${item.Manufacturer || ''} ${item.Model || ''} ${item.Badge || ''}`,
+      imageUrl: item.Photo ? `${process.env.NEXT_PUBLIC_ENCAR_IMG_SRC || 'http://ci.encar.com'}${item.Photo}001.jpg?impolicy=heightRate&rh=192&cw=320&ch=192&cg=Center&wtmk=https://ci.encar.com/wt_mark/w_mark_04.png&wtmkg=SouthEast&wtmkw=70&wtmkh=30&t=20251217121649` : '',
+      model_year: item.FormYear,
+      make: item.Manufacturer,
+      fuel_type: item.FuelType || item.category || '-',
+      odometer: item.Mileage ? `${item.Mileage} km` : '',
+      final_price: finalPrice,
+      isLowPrice: isLowPrice,
+      transmission: item?.Badge || null,
+      price: null,
+      drive_type: item.BadgeDetail || '-',
+      capacity: item.Capacity || '-',
+      badge: tabId === 'cargo' ? null : item.Badge,
+      detail: tabId === 'cargo' ? item.FormDetail : null,
+      tabId: tabId,
+      linkUrl: `/${tabId}/${item.Id}`
+    };
+  });
 };
 
 const carpoolTabs = [
   { id: "cars", label: "Cars" },
   { id: "buses", label: "Buses" },
   { id: "trucks", label: "Trucks" },
+  { id: "bikes", label: "Bikes" },
+  { id: "parts", label: "Parts" },
 ];
 
 const otherTabs = [
@@ -65,6 +84,7 @@ const otherTabs = [
 ];
 
 export default function ExploreAllVehicles() {
+  const { currency, convert, format } = useCurrency();
   const [activeCarpoolTab, setActiveCarpoolTab] = useState(carpoolTabs[0]);
   const [carpoolData, setCarpoolData] = useState([]);
   const [loadingCarpool, setLoadingCarpool] = useState(false);
@@ -80,7 +100,7 @@ export default function ExploreAllVehicles() {
         const res = await axios.get(`${API_BASE_URL}/${activeCarpoolTab.id}`);
         const rawData = res.data.data || [];
         // slice to limit to 20 items and format
-        setCarpoolData(formatCarpoolData(rawData.slice(0, 20), activeCarpoolTab.id));
+        setCarpoolData(formatCarpoolData(rawData.slice(0, 10), activeCarpoolTab.id));
       } catch (err) {
         console.error(err);
         setCarpoolData([]);
@@ -201,14 +221,34 @@ export default function ExploreAllVehicles() {
                   </Link>
                 </h6>
                 <div className="text"></div>
-                <ul>
+                <ul className="d-flex justify-content-evenly">
 
                   <li><i className="flaticon-gasoline-pump" /> {car.tabId === 'cargo' ? car.capacity : car.fuel_type}</li>
-                  <li><i className="flaticon-gearbox" /> {car.tabId === 'cargo' ? car.detail?.slice(0, 15) : car.badge}</li>
-                  <li><i className="flaticon-dashboard" /> {car.odometer?.toLocaleString()} km</li>
+                  <li><i className="flaticon-gearbox" /> {car.tabId === 'cargo' ? car.detail?.slice(0, 15) : car.drive_type}</li>
+                  <li><i className="flaticon-dashboard" /> {car.odometer?.toLocaleString()}</li>
                 </ul>
                 <div className="btn-box">
-                  <small>${car.final_price ? car.final_price?.toLocaleString() : '0'}</small>
+                  <small>
+                    {otherTabs.some(t => t.id === car.tabId) ? (
+                      typeof car.final_price === 'number' ? (
+                        currency === 'KRW' ? (
+                          <>
+                            ₩{(((car.final_price * 10000) + (car.isLowPrice ? convert(300, "USD") : 0)) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <span style={{ fontSize: '0.8em', fontWeight: 'normal' }}> Million</span>
+                          </>
+                        ) : (
+                          format(convert(car.final_price * 10000, "KRW") + (car.isLowPrice ? convert(300, "USD") : 0))
+                        )
+                      ) : (
+                        car.final_price
+                      )
+                    ) : (
+                      // Carpool vehicle price
+                      currency === 'KRW'
+                        ? `₩${convert(car.final_price, "USD").toLocaleString()}`
+                        : format(car.final_price)
+                    )}
+                  </small>
                   <Link href={car.linkUrl} className="details">
                     View Details
                   </Link>

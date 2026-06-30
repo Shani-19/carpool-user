@@ -26,6 +26,13 @@ export default function MyOrders() {
         model: ""
     });
 
+    // Number formatter function
+    const fmtNumber = (val) => {
+        const n = Number(val);
+        if (Number.isNaN(n)) return "0";
+        return n.toLocaleString("en-US");
+    };
+
     // Load all orders initially
     useEffect(() => {
         if (user && !authLoading) {
@@ -66,21 +73,23 @@ export default function MyOrders() {
                     return {
                         id: order.id,
                         productImage: vehicle?.main_image ? imgPath + vehicle.main_image : "/images/resource/add-car1.jpg",
-                        brand: vehicle?.make?.name || 'Unknown',
-                        model: vehicle?.model?.name || 'Unknown',
-                        year: vehicle?.model_year || 'Unknown',
-                        vin: vehicle?.vin || 'Unknown',
+                        brand: vehicle?.make?.name || null,
+                        model: vehicle?.model?.name || null,
+                        modeld: vehicle?.modeld?.name || null,
+                        year: vehicle?.model_year || null,
+                        vin: vehicle?.vin || null,
+                        name: vehicle?.name || null,
                         driveType: vehicle?.drive_type || '',
                         bodyType: vehicle?.type?.name || vehicle?.ca?.name || '-',
-                        transmission: vehicle?.transmission || 'Unknown',
-                        seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : '',
-                        fuelType: vehicle?.fuel?.name || 'Unknown',
-                        engine: vehicle?.engine_volume ? `${vehicle.engine_volume} CC` : 'Unknown',
-                        mileage: vehicle?.odometer ? `${vehicle.odometer} Km` : 'Unknown',
-                        orderDate: order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Unknown Date',
-                        orderNo: order.order_tracking_no || 'Unknown',
-                        status: order.order_status || 'Unknown',
-                        ccode: order.c_code || '-',
+                        transmission: vehicle?.transmission || null,
+                        seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : null,
+                        fuelType: vehicle?.fuel?.name || null,
+                        engine: vehicle?.engine_volume ? `${fmtNumber(vehicle.engine_volume)} CC` : null,
+                        mileage: vehicle?.odometer ? `${fmtNumber(vehicle.odometer)} Km` : null,
+                        orderDate: order.created_at ? new Date(order.created_at).toLocaleDateString() : null,
+                        orderNo: order.order_tracking_no || null,
+                        status: order.order_status || null,
+                        ccode: order.c_code || null,
                         vehicleType: vehicleType,
                         category: vehicle?.ca?.name || null,
                         color: vehicle?.color || null,
@@ -125,6 +134,7 @@ export default function MyOrders() {
             const searchMatch = search === "" ||
                 order.brand?.toLowerCase().includes(search.toLowerCase()) ||
                 order.model?.toLowerCase().includes(search.toLowerCase()) ||
+                order.modeld?.toLowerCase().includes(search.toLowerCase()) ||
                 order.vin?.toLowerCase().includes(search.toLowerCase());
 
             // Filter by year
@@ -135,11 +145,12 @@ export default function MyOrders() {
 
             // Filter by model
             const modelMatch = !filters.model || order.model === filters.model;
+            const modeldMatch = !filters.modeld || order.modeld === filters.modeld;
 
             // Filter by active tab
             const tabMatch = activeTab === 'all' || order.status === activeTab;
 
-            return searchMatch && yearMatch && brandMatch && modelMatch && tabMatch;
+            return searchMatch && yearMatch && brandMatch && modelMatch && modeldMatch && tabMatch;
         });
 
         // Sort results
@@ -246,7 +257,7 @@ export default function MyOrders() {
                         <div className="list-title">
                             <h3 className="title">My Orders</h3>
                             <div className="text">
-                                This website is the most safe and convenient way for the deal through Carpool Korea.
+                                View and track all your vehicle orders, monitor their status, and stay updated throughout the purchasing process.
                             </div>
                         </div>
                         <div className="my-listing-table wrap-listing myOrderSec">
@@ -271,7 +282,7 @@ export default function MyOrders() {
                                             </span>
                                             <input
                                                 type="text"
-                                                placeholder="Search by brand, model, or chassis..."
+                                                placeholder="Search by manufacturer, model, model detail or chassis..."
                                                 value={search}
                                                 className="w-100"
                                                 onChange={(e) => setSearch(e.target.value)}
@@ -466,10 +477,10 @@ export default function MyOrders() {
                                                                 <Image
                                                                     src={item.productImage}
                                                                     alt={item.brand}
-                                                                    width={200}
-                                                                    height={150}
+                                                                    width={120}
+                                                                    height={90}
                                                                     className="rounded object-fit-cover"
-                                                                    style={{ height: '180px', width: '240px' }}
+                                                                    style={{ height: '120px', width: '160px' }}
                                                                     priority={index <= 2}
                                                                 />
                                                             </div>
@@ -482,16 +493,16 @@ export default function MyOrders() {
                                                                             chunks.push(item.bookingImages.slice(i, i + 3));
                                                                         }
                                                                         return chunks.map((chunk, chunkIdx) => (
-                                                                            <div key={chunkIdx} className="d-flex flex-column" style={{ height: '180px' }}>
+                                                                            <div key={chunkIdx} className="d-flex flex-column" style={{ height: '120px' }}>
                                                                                 {chunk.map((img, imgIdx) => (
                                                                                     <Image
                                                                                         key={imgIdx}
                                                                                         src={img}
                                                                                         alt={`${item.brand} extra ${chunkIdx * 3 + imgIdx}`}
-                                                                                        width={75}
-                                                                                        height={50}
+                                                                                        width={45}
+                                                                                        height={30}
                                                                                         className="rounded object-fit-cover border"
-                                                                                        style={{ height: '60px', width: '90px' }}
+                                                                                        style={{ height: '40px', width: '60px' }}
                                                                                     />
                                                                                 ))}
                                                                             </div>
@@ -501,10 +512,11 @@ export default function MyOrders() {
                                                             )}
                                                             <div className="car-info">
                                                                 <h4 className="car-title">
-                                                                    {item.vehicleType == 'part' ? `${item.name}` : `${item.year}, ${item.brand}, ${item.model}`}
+                                                                    {item.vehicleType == 'part' ? `${item.name}` : `${item.year}, ${item.brand}, ${item.modeld || item.model}`}
                                                                 </h4>
                                                                 <p className="vin">Chassis No. {item.vin}</p>
                                                                 <p className="mb-details">
+                                                                    {item.vehicleType == 'part' ? `${item.year} | ${item.brand} | ${item.model}` : ''}
                                                                     {item.transmission ? item.transmission : ''} {item.fuelType ? ' | ' + item.fuelType : ''} {item.driveType ? ' | ' + item.driveType : ''} {item.bodyType ? ' | ' + item.bodyType : ''}  {item.seats ? ' | ' + item.seats : ''}
                                                                 </p>
                                                                 <p className="mb-details">
@@ -514,14 +526,14 @@ export default function MyOrders() {
                                                             </div>
                                                         </div>
                                                         <div className="mb-card-right-box d-flex flex-column justify-content-end">
-                                                            <p className="d-flex gap-2 align-items-center justify-content-end mb-0">
+                                                            <p className="d-flex gap-2 align-items-center mb-0">
                                                                 <strong className="small mb-mobile-hidden">Status: </strong>
                                                                 <span className={`badge ${item.status === 'Completed' ? 'bg-light text-success' : item.status === 'Canceled' ? 'bg-light text-danger' : 'bg-light text-warning'}`}>{item.status}</span>
                                                             </p>
                                                             <div className="booking-info mb-mobile-hidden">
-                                                                <p><strong>Order date: </strong>{item.orderDate}</p>
-                                                                <p><strong>Order No: </strong>{item.orderNo}</p>
-                                                                <p><strong>C Code: </strong>{item.ccode}</p>
+                                                                <p><strong>Order Date: </strong>{item.orderDate}</p>
+                                                                <p><strong>Order ID: </strong>{item.orderNo}</p>
+                                                                <p><strong>Customer Code: </strong>{item.ccode}</p>
                                                             </div>
                                                         </div>
                                                     </div>

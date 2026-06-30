@@ -37,7 +37,7 @@ const renderConfigItem = (item, itemIndex, data) => {
     // Default rendering using accessor
     const value = getNestedValue(data, item.accessor);
 
-    const dynamicLabel = (item.label == 'RNC' ? (data.label ? data.label : 'RNC') : item.label);
+    const dynamicLabel = (item.label == 'ID' ? (data.label ? data.label : 'ID') : item.label);
     // console.log(dynamicLabel);
     return (
         <DataDisplayItem
@@ -131,8 +131,8 @@ const DetailCard = ({ title, data, countries = [], PortCharges = [], ports = [],
             }
         });
 
-        // for RNC label in edit model
-        // initialFormState.label = 'RNC (Test Label)'
+        // for ID label in edit model
+        // initialFormState.label = 'ID (Test Label)'
         initialFormState.label = tableData.label;
         // console.log(initialFormState)
         setEditFormData(initialFormState);
@@ -338,7 +338,7 @@ const DetailCard = ({ title, data, countries = [], PortCharges = [], ports = [],
         const inputValue = editFormData[fieldName] !== undefined ? editFormData[fieldName] : '';
         const colClass = item.fullWidth ? 'col-12' : 'col-md-6';
 
-        const fieldLabel = (item.label == 'RNC' ? (editFormData.label ? editFormData.label : 'RNC') : item.label);
+        const fieldLabel = (item.label == 'ID' ? (editFormData.label ? editFormData.label : 'ID') : item.label);
 
         // const isRequired = !fieldName.includes('zip_code');
         const excludedFieldNames = ['zip_code', 'shipping_time'];

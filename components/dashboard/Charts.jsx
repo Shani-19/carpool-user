@@ -24,16 +24,16 @@ ChartJS.register(
   PointElement,
   LineElement
 );
-const data = {
-  labels: ["January", "February", "March", "April", "May", "June"],
+const getChartData = (labels, values) => ({
+  labels: labels,
   // Information about the dataset
   datasets: [
     {
-      label: "Views",
+      label: "Vehicles",
       backgroundColor: "transparent",
       borderColor: "#1967D2",
       borderWidth: "1",
-      data: [196, 132, 215, 362, 210, 252],
+      data: values,
       pointRadius: 3,
       pointHoverRadius: 3,
       pointHitRadius: 10,
@@ -43,9 +43,11 @@ const data = {
       tension: 0.4,
     },
   ],
-};
+});
 
 const options = {
+  responsive: true,
+  maintainAspectRatio: false,
   layout: {
     padding: 10,
   },
@@ -71,8 +73,8 @@ const options = {
     intersect: false,
   },
 };
-const EarningsChart = () => {
-  return <Line data={data} options={options} />;
+const EarningsChart = ({ labels = [], dataValues = [] }) => {
+  return <Line data={getChartData(labels, dataValues)} options={options} />;
 };
 
 export default EarningsChart;

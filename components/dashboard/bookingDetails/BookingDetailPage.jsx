@@ -17,6 +17,13 @@ export default function BookingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Number formatter function
+  const fmtNumber = (val) => {
+    const n = Number(val);
+    if (Number.isNaN(n)) return "0";
+    return n.toLocaleString("en-US");
+  };
+
   useEffect(() => {
     if (booking_num) {
       fetchBookingDetails();
@@ -74,17 +81,20 @@ export default function BookingDetailPage() {
     return {
       id: booking.id,
       productImage: vehicle?.main_image ? imgPath + vehicle.main_image : "/images/resource/add-car1.jpg",
-      brand: vehicle?.make?.name || 'Unknown',
-      model: vehicle?.model?.name || 'Unknown',
-      year: vehicle?.model_year || 'Unknown',
-      vin: vehicle?.vin || 'Unknown',
-      driveType: vehicle?.drive_type || '',
-      bodyType: vehicle?.type?.name || vehicle?.ca?.name || '-',
-      transmission: vehicle?.transmission || 'Unknown',
+      brand: vehicle?.make?.name || null,
+      model: vehicle?.model?.name || null,
+      modeld: vehicle?.modeld?.name || null,
+      year: vehicle?.model_year || null,
+      vc: vehicle?.vc || null,
+      inspection: vehicle?.inspection?.qr_code || null,
+      vin: vehicle?.vin || null,
+      driveType: vehicle?.drive_type || null,
+      bodyType: vehicle?.type?.name || vehicle?.ca?.name || null,
+      transmission: vehicle?.transmission || null,
       seats: vehicle?.passenger ? `${vehicle.passenger} Seats` : '',
       fuelType: vehicle?.fuel?.name || 'Unknown',
-      engine: vehicle?.engine_volume ? `${vehicle.engine_volume} CC` : 'Unknown',
-      mileage: vehicle?.odometer ? `${vehicle.odometer} Km` : 'Unknown',
+      engine: vehicle?.engine_volume ? `${fmtNumber(vehicle.engine_volume)} CC` : 'Unknown',
+      mileage: vehicle?.odometer ? `${fmtNumber(vehicle.odometer)} Km` : 'Unknown',
       bookingDate: booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
@@ -244,7 +254,7 @@ export default function BookingDetailPage() {
                         </div>
 
                         <div className="info-item mb-1 pb-1 text-end">
-                          <strong>Booking Type:</strong>
+                          <strong>Shipping Method:</strong>
                           <span className="text-muted ms-2">{transformedBookings[0].bookingType}</span>
                         </div>
                       </div>
@@ -270,7 +280,7 @@ export default function BookingDetailPage() {
                           </div>
                           <div className="car-info">
                             <h4 className="car-title">
-                              {item.year}, {item.brand}, {item.model}
+                              {item.year}, {item.brand}, {item.modeld || item.model}
                             </h4>
                             <p className="vin">Chassis No. {item.vin}</p>
                             <p className="mb-details">
@@ -288,19 +298,47 @@ export default function BookingDetailPage() {
                         </div>
                         <div className="mb-card-right-box d-flex flex-column justify-content-between">
                           <p className="d-flex gap-2 align-items-center justify-content-end mb-0">
-                            <span className="d-flex align-items-center">
-                              <small>VCR:</small>
-                              <span>
-                                <input type="hidden" name="_token" value="" />
-                                <input type="hidden" name="id" value="" />
-                                <button className="btn btn-link btn-xs" type="submit" name="Submit" style={{ display: 'inline', color: 'gray' }}>
-                                  <i className="fa fa-download"></i>
-                                </button>
+                            {item.inspection ? (
+                              <span className="d-flex align-items-center">
+                                <small>Inspection Report:</small>
+
+                                <a
+                                  href={`https://inspection.carpoolkr.com/inspection-report-show-qr/${item.inspection}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-link btn-xs pe-0"
+                                  style={{ display: "inline", color: "gray" }}
+                                >
+                                  <i className="fa fa-eye"></i>
+                                </a>
                               </span>
-                            </span>
+                            ) : item.vc ? (
+                              <span className="d-flex align-items-center">
+                                <small>Vehicle Report:</small>
+
+                                <form
+                                  action="https://media.carpoolkr.com/api/vehicle-vcr"
+                                  method="POST"
+                                  target="_blank"
+                                >
+                                  <input type="hidden" name="name" value={item.vc} />
+                                  <input type="hidden" name="type" value="down" />
+
+                                  <button
+                                    className="btn btn-link btn-xs pe-0"
+                                    type="submit"
+                                    style={{ display: "inline", color: "gray" }}
+                                  >
+                                    <i className="fa fa-download"></i>
+                                  </button>
+                                </form>
+                              </span>
+                            ) : (
+                              <span></span>
+                            )}
                           </p>
                           <div className="booking-info">
-                            <div className="price_p txt-primary fw-bold fs-6">
+                            <div className="price_p txt-primary fw-bold fs-6 text-end">
                               USD {item.price}
                             </div>
                           </div>
@@ -352,7 +390,7 @@ export default function BookingDetailPage() {
                   config={documentConfig}
                   // onEdit={() => handleEdit('document')}
                   editable={btnDisplayCheck}
-                  bookingType={transformedBookings.bookingType}
+                  bookingType={transformedBookings[0]?.bookingType}
                 />
 
               </div>

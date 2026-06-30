@@ -1244,7 +1244,12 @@ figure.image:hover .cl-reserved-overlay,
     gap: 10px;
 }
 
+.page-item.active .page-link,
 .btn-primary {
     background-color: #0c768a;
     border-color: #0c768a;
+}
+
+.text-primary {
+    color: #0c768a !important;
 }

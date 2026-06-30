@@ -47,10 +47,10 @@
 
 .dt-info-item {
     width: 49%;
-    background: #E9F2FF;
+    background: #0c768a33;
     padding: 10px 15px;
     border-radius: 10px;
-    color: #405ff2;
+    color: #0c768a;
     margin: 14px 0;
     margin-top: 0;
 }
@@ -66,8 +66,8 @@
 
 .dt-info-item p {
     margin: 0;
-    /* color: #405ff2; */
-    font-weight: 600;
+    color: #0c768a;
+    font-weight: bold;
 }
 
 .dt-row-full-width {

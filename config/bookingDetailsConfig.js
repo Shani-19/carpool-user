@@ -3,7 +3,7 @@ export const consigneeConfig = [
     { label: 'Consignee Name', accessor: 'name', type: 'text' },
     { label: 'Email Address', accessor: 'email', type: 'email' },
 
-    { label: 'RNC', accessor: 'rnc', type: 'text' },
+    { label: 'ID', accessor: 'rnc', type: 'text' },
     { label: 'Phone Number', accessor: 'mobile', type: 'tel' },
 
     { label: 'Country', accessor: 'shipping.name', type: 'select-country' },

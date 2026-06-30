@@ -76,3 +76,7 @@ export const quotationAPI = {
   sendQuotation: (data) => api.post("/quotation-send", data),
 };
 // ===== Maira Edit END =====
+
+export const dashboardAPI = {
+  getDashboardData: (period = 3) => api.post(`/dashboard`, { period }),
+};

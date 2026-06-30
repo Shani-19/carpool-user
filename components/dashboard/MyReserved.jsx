@@ -38,11 +38,17 @@ export default function MyReserved() {
                         ? process.env.NEXT_PUBLIC_BUSES_IMG_SRC_NEW
                         : vType === 'truck'
                             ? process.env.NEXT_PUBLIC_TRUCKS_IMG_SRC_NEW
-                            : process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW;
+                            : vType === 'bike'
+                                ? process.env.NEXT_PUBLIC_BIKES_IMG_SRC_NEW
+                                : vType === 'part'
+                                    ? process.env.NEXT_PUBLIC_PARTS_IMG_SRC_NEW
+                                    : process.env.NEXT_PUBLIC_CARS_IMG_SRC_NEW;
 
                     let endpoint = 'cars';
                     if (vType === 'bus') endpoint = 'buses';
                     else if (vType === 'truck') endpoint = 'trucks';
+                    else if (vType === 'bike') endpoint = 'bikes';
+                    else if (vType === 'part') endpoint = 'parts';
 
                     const detailUrl = v.slug ? `/${endpoint}/${v.slug}` : '#';
                     return {
@@ -82,6 +88,8 @@ export default function MyReserved() {
     const carCount = allVehicles.filter(v => v.vehicleType === 'car').length;
     const busCount = allVehicles.filter(v => v.vehicleType === 'bus').length;
     const truckCount = allVehicles.filter(v => v.vehicleType === 'truck').length;
+    const bikeCount = allVehicles.filter(v => v.vehicleType === 'bike').length;
+    const partCount = allVehicles.filter(v => v.vehicleType === 'part').length;
 
     const { paginatedVehicles, totalFiltered, totalPages } = useMemo(() => {
         let result = allVehicles.filter(v => {
@@ -98,7 +106,9 @@ export default function MyReserved() {
                 activeTab === 'all' ? true :
                     activeTab === 'cars' ? v.vehicleType === 'car' :
                         activeTab === 'buses' ? v.vehicleType === 'bus' :
-                            activeTab === 'trucks' ? v.vehicleType === 'truck' : true;
+                            activeTab === 'bikes' ? v.vehicleType === 'bike' :
+                                activeTab === 'parts' ? v.vehicleType === 'part' :
+                                    activeTab === 'trucks' ? v.vehicleType === 'truck' : true;
 
             return searchMatch && yearMatch && brandMatch && modelMatch && tabMatch;
         });
@@ -291,6 +301,8 @@ export default function MyReserved() {
                                             { key: 'cars', label: 'Cars', count: carCount },
                                             { key: 'buses', label: 'Buses', count: busCount },
                                             { key: 'trucks', label: 'Trucks', count: truckCount },
+                                            { key: 'bikes', label: 'Bikes', count: bikeCount },
+                                            { key: 'parts', label: 'Parts', count: partCount },
                                         ].map(tab => (
                                             <li key={tab.key} className="nav-item" role="presentation">
                                                 <button
