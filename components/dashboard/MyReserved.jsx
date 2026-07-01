@@ -57,14 +57,16 @@ export default function MyReserved() {
                         slug: v.slug,
                         detailUrl,
                         productImage: v.main_image ? imgBase + v.main_image : '/images/resource/add-car1.jpg',
-                        brand: v.make?.name || 'Unknown',
-                        model: v.model?.name || 'Unknown',
-                        year: v.model_year || 'Unknown',
-                        vin: v.vin || 'Unknown',
-                        transmission: v.transmission || '',
-                        driveType: v.drive_type || '',
-                        bodyType: v.type?.name || '-',
-                        fuelType: v.fuel?.name || '',
+                        brand: v.make?.name || null,
+                        model: v.model?.name || null,
+                        category: v.ca?.name || null,
+                        year: v.model_year || null,
+                        name: v.name || null,
+                        vin: v.vin || null,
+                        transmission: v.transmission || null,
+                        driveType: v.drive_type || null,
+                        bodyType: v.type?.name || null,
+                        fuelType: v.fuel?.name || null,
                         seats: v.passenger ? `${v.passenger} Seats` : '',
                         engine: v.engine_volume ? `${v.engine_volume} CC` : '',
                         mileage: v.odometer ? `${v.odometer} Km` : '',
@@ -351,10 +353,11 @@ export default function MyReserved() {
                                                             </div>
                                                             <div className="car-info">
                                                                 <h4 className="car-title">
-                                                                    {item.year}, {item.brand}, {item.model}
+                                                                    {item.vehicleType == 'part' ? item.name : `${item.year}, ${item.brand}, ${item.model}`}
                                                                 </h4>
-                                                                <p className="vin">Chassis No. {item.vin}</p>
+                                                                <p className="vin">{item.vehicleType == 'part' ? 'Part No.' : 'Chassis No.'} {item.vin}</p>
                                                                 <p className="mb-details">
+                                                                    {item.vehicleType == 'part' ? `${item.year}, ${item.brand}, ${item.model}` : ''}
                                                                     {item.transmission ? item.transmission : ''} {item.fuelType ? ' | ' + item.fuelType : ''} {item.driveType ? ' | ' + item.driveType : ''} {item.bodyType ? ' | ' + item.bodyType : ''} {item.seats ? ' | ' + item.seats : ''}
                                                                 </p>
                                                                 <p className="mb-details">

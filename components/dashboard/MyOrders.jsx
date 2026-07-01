@@ -86,7 +86,11 @@ export default function MyOrders() {
                         fuelType: vehicle?.fuel?.name || null,
                         engine: vehicle?.engine_volume ? `${fmtNumber(vehicle.engine_volume)} CC` : null,
                         mileage: vehicle?.odometer ? `${fmtNumber(vehicle.odometer)} Km` : null,
-                        orderDate: order.created_at ? new Date(order.created_at).toLocaleDateString() : null,
+                        orderDate: order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                        }) : null,
                         orderNo: order.order_tracking_no || null,
                         status: order.order_status || null,
                         ccode: order.c_code || null,

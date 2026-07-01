@@ -460,7 +460,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
               <div>
                 <h3 className="title">Order Details</h3>
                 <div className="text">
-                  View complete order information, vehicle details, order status, and important updates in one place.
+                  Access detailed information about your vehicle order, including status, documents, and shipment details.
                 </div>
               </div>
               {!hasClaim && (
@@ -483,7 +483,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                     <div className="row">
 
                       <div className="col-md-6">
-                        <div className="info-item mb-1 pb-1 text-start">
+                        <div className="dt-info-item mb-1 pb-1 text-start">
                           <strong>Order Status:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             <span className={`badge d-status ${getStatusBadgeClass(orderStatus)}`}>
@@ -492,7 +492,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                           </div>
                         </div>
 
-                        <div className="info-item mb-1 pb-1 text-start">
+                        <div className="dt-info-item mb-1 pb-1 text-start">
                           <strong>Vehicle Categories:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             {Array.from(new Set(transformedOrders.map(b => b.vehicleType))).map(type => (
@@ -503,45 +503,41 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                           </div>
                         </div>
 
-                        <div className="info-item mb-1 pb-1 text-start">
-                          <strong>Invoice Method:</strong>
-                          <span className="text-muted ms-2">{orderType}</span>
+                        <div className="dt-info-item mb-1 pb-1 text-start">
+                          <strong>Shipping Method:</strong>
+                          <span className="font-semibold ms-2">{orderType}</span>
                         </div>
 
-                        <p className="info-item mb-1 pb-1 text-start">
-                          <strong> Order Agent:</strong>
-                          <a className="text-muted ms-2 fw-semibold" href="#">
-                            {bookedBy}
-                          </a>
+                        <p className="dt-info-item mb-1 pb-1 text-start">
+                          <strong>Order Coordinator:</strong>
+                          <span className="font-semibold ms-2">{bookedBy}</span>
                         </p>
-                        <p className="info-item mb-1 pb-1 text-start">
-                          <strong> Salesperson:</strong>
-                          <a className="text-muted ms-2 fw-semibold" href="#">
-                            {salesPerson}
-                          </a>
+                        <p className="dt-info-item mb-1 pb-1 text-start">
+                          <strong> Sales Representative:</strong>
+                          <span className="font-semibold ms-2">{salesPerson}</span>
                         </p>
 
                       </div>
                       <div className="col-md-6 text-end">
-                        <div className="info-item mb-1 pb-1">
+                        <div className="dt-info-item mb-1 pb-1">
                           <strong>Order ID:</strong>
-                          <span className="text-muted ms-2">{orderNo}</span>
+                          <span className="font-semibold ms-2">{orderNo}</span>
                         </div>
-                        <div className="info-item mb-1 pb-1">
+                        <div className="dt-info-item mb-1 pb-1">
                           <strong>Order Date:</strong>
-                          <span className="text-muted ms-2">
+                          <span className="font-semibold ms-2">
                             {orderDate}
                           </span>
                         </div>
 
-                        <p className="info-item mb-1 pb-1">
+                        <p className="dt-info-item mb-1 pb-1">
                           <strong>Customer Code:</strong>
-                          <span className="text-muted ms-2">{orderCcode}</span>
+                          <span className="font-semibold ms-2">{orderCcode}</span>
                         </p>
 
-                        <div className="info-item mb-1 pb-1">
-                          <strong>Total Payment:</strong>
-                          <span className="text-muted ms-2">$ {totalPayment}</span>
+                        <div className="dt-info-item mb-1 pb-1">
+                          <strong>Order Total Amount:</strong>
+                          <span className="price_p txt-primary fw-bold fs-6 ms-2">USD {totalPayment}</span>
                         </div>
                       </div>
                     </div>

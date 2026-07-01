@@ -1250,6 +1250,17 @@ figure.image:hover .cl-reserved-overlay,
     border-color: #0c768a;
 }
 
+.page-link:hover,
+.page-item.active .page-link:hover {
+    background-color: #0c768a85 !important;
+}
+
 .text-primary {
     color: #0c768a !important;
+}
+
+.dt-info-item span {
+    margin: 0;
+    color: #0c768a;
+    font-weight: bold;
 }
