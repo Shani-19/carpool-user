@@ -97,7 +97,9 @@ export default function MyOrders() {
                         vehicleType: vehicleType,
                         category: vehicle?.ca?.name || null,
                         color: vehicle?.color || null,
-                        bookingImages: order.booking_images || []
+                        count: order.vehicle_count || null,
+                        bookingImages: order.booking_images || [],
+                        searchMetadata: order.search_metadata || [],
                     };
                 });
 
@@ -132,46 +134,47 @@ export default function MyOrders() {
 
     // Client-side filtering, sorting and pagination
     const { filteredOrders, paginatedOrders, totalFiltered, totalPages } = useMemo(() => {
-        // Apply all filters
         let result = allOrders.filter(order => {
-            // Text search across multiple fields
-            const searchMatch = search === "" ||
-                order.brand?.toLowerCase().includes(search.toLowerCase()) ||
-                order.model?.toLowerCase().includes(search.toLowerCase()) ||
-                order.modeld?.toLowerCase().includes(search.toLowerCase()) ||
-                order.vin?.toLowerCase().includes(search.toLowerCase());
+            // 1. Text Search: Check if ANY vehicle in searchMetadata matches
+            const searchMatch = search === "" || order.searchMetadata.some(v =>
+                v.brand?.toLowerCase().includes(search.toLowerCase()) ||
+                v.model?.toLowerCase().includes(search.toLowerCase()) ||
+                v.modeld?.toLowerCase().includes(search.toLowerCase()) ||
+                v.vin?.toLowerCase().includes(search.toLowerCase())
+            );
 
-            // Filter by year
-            const yearMatch = !filters.year || order.year == filters.year;
+            // 2. Year Filter: Check if ANY vehicle in searchMetadata matches year
+            const yearMatch = !filters.year || order.searchMetadata.some(v =>
+                String(v.year) === String(filters.year)
+            );
 
-            // Filter by brand  
-            const brandMatch = !filters.brand || order.brand === filters.brand;
+            // 3. Brand Filter
+            const brandMatch = !filters.brand || order.searchMetadata.some(v =>
+                v.brand === filters.brand
+            );
 
-            // Filter by model
-            const modelMatch = !filters.model || order.model === filters.model;
-            const modeldMatch = !filters.modeld || order.modeld === filters.modeld;
+            // 4. Model Filter (Checking both model and model detail)
+            const modelMatch = !filters.model || order.searchMetadata.some(v =>
+                v.model === filters.model || v.modeld === filters.model
+            );
 
-            // Filter by active tab
+            // 5. Tab Match (Status)
             const tabMatch = activeTab === 'all' || order.status === activeTab;
 
-            return searchMatch && yearMatch && brandMatch && modelMatch && modeldMatch && tabMatch;
+            return searchMatch && yearMatch && brandMatch && modelMatch && tabMatch;
         });
 
-        // Sort results
+        // ... (keep your existing sorting and slice logic below)
         if (sortBy === "newest") {
             result.sort((a, b) => b.id - a.id);
         } else {
             result.sort((a, b) => a.id - b.id);
         }
 
-        // Paginate results
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        const paginated = result.slice(startIndex, endIndex);
-
         return {
             filteredOrders: result,
-            paginatedOrders: paginated,
+            paginatedOrders: result.slice(startIndex, startIndex + ITEMS_PER_PAGE),
             totalFiltered: result.length,
             totalPages: Math.ceil(result.length / ITEMS_PER_PAGE)
         };
@@ -197,9 +200,24 @@ export default function MyOrders() {
     };
 
     // Get unique values for dropdowns from ALL loaded orders
-    const uniqueYears = [...new Set(allOrders.map(b => b.year))].filter(Boolean).sort((a, b) => b - a);
-    const uniqueBrands = [...new Set(allOrders.map(b => b.brand))].filter(Boolean).sort();
-    const uniqueModels = [...new Set(allOrders.map(b => b.model))].filter(Boolean).sort();
+    // Collect years from every vehicle in every order
+    const uniqueYears = useMemo(() => {
+        const years = allOrders.flatMap(o => o.searchMetadata?.map(v => v.year) || []);
+        return [...new Set(years)].filter(Boolean).sort((a, b) => b - a);
+    }, [allOrders]);
+
+    // Collect brands from every vehicle in every order
+    const uniqueBrands = useMemo(() => {
+        const brands = allOrders.flatMap(o => o.searchMetadata?.map(v => v.brand) || []);
+        return [...new Set(brands)].filter(Boolean).sort();
+    }, [allOrders]);
+
+    // Collect models and model details from every vehicle in every order
+    const uniqueModels = useMemo(() => {
+        const models = allOrders.flatMap(o => o.searchMetadata?.map(v => v.model) || []);
+        const modelDs = allOrders.flatMap(o => o.searchMetadata?.map(v => v.modeld) || []);
+        return [...new Set([...models, ...modelDs])].filter(Boolean).sort();
+    }, [allOrders]);
 
     // Calculate counts for tabs from ALL loaded orders
     const allCount = allOrders.length;
@@ -477,7 +495,7 @@ export default function MyOrders() {
                                                 >
                                                     <div className="car-card">
                                                         <div className="mb-info-box d-flex align-items-stretch">
-                                                            <div className="car-image">
+                                                            <div className="car-image position-relative">
                                                                 <Image
                                                                     src={item.productImage}
                                                                     alt={item.brand}
@@ -487,6 +505,9 @@ export default function MyOrders() {
                                                                     style={{ height: '120px', width: '160px' }}
                                                                     priority={index <= 2}
                                                                 />
+                                                                {item.count > 0 && (
+                                                                    <span className="position-absolute translate-middle badge bg-primary" style={{ bottom: '-10px', left: '12px' }}>{item.count}</span>
+                                                                )}
                                                             </div>
                                                             {item.bookingImages && item.bookingImages.length > 0 && (
                                                                 <div className="d-flex align-items-start">

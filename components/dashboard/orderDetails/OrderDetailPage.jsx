@@ -564,7 +564,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                           </div>
                           <div className="car-info">
                             <h4 className="car-title">
-                              {item.vehicleType == 'Part' ? item.name : `${item.year}, ${item.brand}, ${item.model}`}
+                              {item.vehicleType == 'Part' ? item.name : `${item.year}, ${item.brand}, ${item.modeld || item.model}`}
                             </h4>
                             <p className="vin">Chassis No. {item.vin}</p>
                             <p className="mb-details">

@@ -1245,14 +1245,10 @@ figure.image:hover .cl-reserved-overlay,
 }
 
 .page-item.active .page-link,
+.bg-primary,
 .btn-primary {
-    background-color: #0c768a;
-    border-color: #0c768a;
-}
-
-.page-link:hover,
-.page-item.active .page-link:hover {
-    background-color: #0c768a85 !important;
+    background-color: #0c768a !important;
+    border-color: #0c768a !important;
 }
 
 .text-primary {
@@ -1263,4 +1259,9 @@ figure.image:hover .cl-reserved-overlay,
     margin: 0;
     color: #0c768a;
     font-weight: bold;
+}
+
+.page-link:hover,
+.page-item.active .page-link:hover {
+    background-color: #0c768a85 !important;
 }
