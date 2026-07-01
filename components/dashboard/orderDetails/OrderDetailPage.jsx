@@ -9,6 +9,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Gallery, Item } from 'react-photoswipe-gallery';
 import 'photoswipe/dist/photoswipe.css';
 import axios from 'axios';
+import './DetailCard.css';
+
 
 export default function OrderDetailPage({ initialData, order_num: propOrderNum }) {
   const params = useParams();
@@ -410,17 +412,17 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
   const hasClaim = claimData && (!Array.isArray(claimData) || claimData.length > 0);
 
   const orderDocuments = [
-    { label: 'Invoice', file: orderData.Invoice, route: '/order-invoice' },
-    { label: 'Payment receipt (1st)', file: orderData.payment_receipt, condition: orderData.receipt_status === 'Verified', route: '/order-receipt' },
-    { label: 'B/L', file: orderData.bl, route: '/order-bl' },
-    { label: 'Payment receipt (2nd)', file: orderData.payment_receipt_1, condition: orderData.receipt_status_1 === 'Verified', route: '/order-receipt' },
-    { label: 'B/L Surrender', file: orderData.bl_slander, route: '/order-blsur' },
-    { label: 'B/L Receipt', file: orderData.bl_receipt_pdf, route: '/order-document' },
-    { label: 'B/L Document', file: orderData.bl_document_pdf, route: '/order-document' },
-    { label: 'C/E', file: firstCe, route: '/order-ce' },
-    { label: 'C/C', file: firstCc, route: '/order-cc' },
+    { label: 'Commercial Invoice', file: orderData.Invoice, route: '/order-invoice' },
+    { label: 'Payment Receipt (1st)', file: orderData.payment_receipt, condition: orderData.receipt_status === 'Verified', route: '/order-receipt' },
+    { label: 'Bill of Lading', file: orderData.bl, route: '/order-bl' },
+    { label: 'Payment Receipt (2nd)', file: orderData.payment_receipt_1, condition: orderData.receipt_status_1 === 'Verified', route: '/order-receipt' },
+    { label: 'Surrendered (B/L)', file: orderData.bl_slander, route: '/order-blsur' },
+    { label: 'Bill of Lading Receipt', file: orderData.bl_receipt_pdf, route: '/order-document' },
+    { label: 'Bill of Lading Document', file: orderData.bl_document_pdf, route: '/order-document' },
+    { label: 'Certificate of Export', file: firstCe, route: '/order-ce' },
+    { label: 'Certificate of Cancellation', file: firstCc, route: '/order-cc' },
     {
-      label: 'Container Images',
+      label: 'Container Photos',
       file: (Array.isArray(orderData.cont) && orderData.cont.length > 0) ? orderData.cont : null,
       isContainer: true
     },
@@ -432,7 +434,8 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
     const payload = { name: doc.file, downname: downName, type: 'down' };
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `https://media.carpoolkr.com${doc.route}`;
+    form.target = '_blank';
+    form.action = `https://media.carpoolkr.com/api${doc.route}`;
     Object.entries(payload).forEach(([key, value]) => {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -445,7 +448,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
     document.body.removeChild(form);
   };
 
-  // Process container images: sort by position
+  // Process container photos: sort by position
   const containerImages = Array.isArray(orderData.cont)
     ? [...orderData.cont].sort((a, b) => (a.position || 0) - (b.position || 0))
     : orderData.cont ? [orderData.cont] : [];
@@ -480,10 +483,10 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                 {/* Summary Section */}
                 <div className="detail-sec mt-0 mb-3">
                   <div className="card-body mbd-top-card border-0 shadow-sm">
-                    <div className="row">
+                    <div className="row font-size-14">
 
                       <div className="col-md-6">
-                        <div className="dt-info-item mb-1 pb-1 text-start">
+                        <div className="ddt-info-item text-start">
                           <strong>Order Status:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             <span className={`badge d-status ${getStatusBadgeClass(orderStatus)}`}>
@@ -492,7 +495,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                           </div>
                         </div>
 
-                        <div className="dt-info-item mb-1 pb-1 text-start">
+                        <div className="ddt-info-item text-start">
                           <strong>Vehicle Categories:</strong>
                           <div className="ms-2 d-inline-flex flex-wrap gap-1">
                             {Array.from(new Set(transformedOrders.map(b => b.vehicleType))).map(type => (
@@ -503,40 +506,40 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                           </div>
                         </div>
 
-                        <div className="dt-info-item mb-1 pb-1 text-start">
+                        <div className="ddt-info-item text-start">
                           <strong>Shipping Method:</strong>
                           <span className="font-semibold ms-2">{orderType}</span>
                         </div>
 
-                        <p className="dt-info-item mb-1 pb-1 text-start">
+                        <div className="ddt-info-item text-start font-size-14">
                           <strong>Order Coordinator:</strong>
                           <span className="font-semibold ms-2">{bookedBy}</span>
-                        </p>
-                        <p className="dt-info-item mb-1 pb-1 text-start">
+                        </div>
+                        <div className="ddt-info-item text-start font-size-14">
                           <strong> Sales Representative:</strong>
                           <span className="font-semibold ms-2">{salesPerson}</span>
-                        </p>
+                        </div>
 
                       </div>
                       <div className="col-md-6 text-end">
-                        <div className="dt-info-item mb-1 pb-1">
+                        <div className="ddt-info-item">
                           <strong>Order ID:</strong>
                           <span className="font-semibold ms-2">{orderNo}</span>
                         </div>
-                        <div className="dt-info-item mb-1 pb-1">
+                        <div className="ddt-info-item">
                           <strong>Order Date:</strong>
                           <span className="font-semibold ms-2">
                             {orderDate}
                           </span>
                         </div>
 
-                        <p className="dt-info-item mb-1 pb-1">
+                        <div className="ddt-info-item font-size-14">
                           <strong>Customer Code:</strong>
                           <span className="font-semibold ms-2">{orderCcode}</span>
-                        </p>
+                        </div>
 
-                        <div className="dt-info-item mb-1 pb-1">
-                          <strong>Order Total Amount:</strong>
+                        <div className="ddt-info-item font-size-14">
+                          <strong>Total Amount:</strong>
                           <span className="price_p txt-primary fw-bold fs-6 ms-2">USD {totalPayment}</span>
                         </div>
                       </div>
@@ -680,7 +683,7 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                     <div className="card-body mbd-top-card border-0 shadow-sm p-4">
                       <div className="d-flex align-items-center mb-4">
                         <i className="fa fa-file-invoice text-primary me-3 fs-4"></i>
-                        <h5 className="mb-0 fs-5 fw-bold">Order Documents & Resources</h5>
+                        <h5 className="mb-0 fs-5 fw-bold">Order Documents</h5>
                       </div>
                       <div className="row g-3">
                         {orderDocuments.map((doc, idx) => (
@@ -760,13 +763,13 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                   </div>
                 )}
 
-                {/* Container Images Modal */}
+                {/* Container Photos Modal */}
                 {isContainerModalOpen && (
                   <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1050 }}>
-                    <div className="modal-dialog modal-lg modal-dialog-centered">
+                    <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                       <div className="modal-content border-0 shadow-lg">
                         <div className="modal-header border-0 bg-dark text-white">
-                          <h5 className="modal-title text-white">Container Images ({containerImages.length})</h5>
+                          <h5 className="modal-title text-white">Container Photos ({containerImages.length})</h5>
                           <button
                             type="button"
                             className="btn-close btn-close-white"
@@ -778,16 +781,29 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
                             {containerImages.map((img, idx) => (
                               <div key={idx} className="col-md-6 col-lg-4">
                                 <div className="card border-0 shadow-sm overflow-hidden h-100">
-                                  <Image
-                                    src={containerBaseUrl + img.image}
-                                    alt={`Container ${idx + 1}`}
-                                    width={400}
-                                    height={300}
-                                    className="img-fluid object-fit-cover"
-                                    style={{ height: '200px' }}
-                                  />
-                                  <div className="card-body p-2 text-center bg-white">
-                                    <span className="badge bg-secondary">{img.position || (idx + 1)}</span>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      height: '260px',
+                                      backgroundColor: '#f3f4f6',
+                                      overflow: 'hidden',
+                                      borderRadius: '8px 8px 0 0',
+                                      width: '100%',
+                                    }}
+                                  >
+                                    <img
+                                      src={containerBaseUrl + img.image}
+                                      alt={`Container ${idx + 1}`}
+                                      style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain',
+                                        display: 'block',
+                                        margin: 'auto',
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -1116,15 +1132,15 @@ export default function OrderDetailPage({ initialData, order_num: propOrderNum }
 
 // ─── Order Progress Wizard ────────────────────────────────────────────────────
 const ORDER_STEPS = [
-  { id: 1, label: 'Book an Item', icon: 'fa-shopping-cart' },
-  { id: 2, label: 'Check Invoice', icon: 'fa-file-invoice-dollar' },
-  { id: 3, label: 'Bank Receipt', icon: 'fa-receipt' },
-  { id: 4, label: 'Payment Received', icon: 'fa-check-circle' },
-  { id: 5, label: 'Shipping Schedule', icon: 'fa-ship' },
-  { id: 6, label: 'Check B/L', icon: 'fa-file-alt' },
-  { id: 7, label: 'Tracking No', icon: 'fa-map-marker-alt' },
-  { id: 8, label: 'Original Documents', icon: 'fa-folder-open' },
-  { id: 9, label: 'Complete', icon: 'fa-flag-checkered' },
+  { id: 1, label: 'Order Placed', icon: 'fa-shopping-cart' },
+  { id: 2, label: 'Invoice Issued', icon: 'fa-file-invoice-dollar' },
+  { id: 3, label: 'Payment Receipt', icon: 'fa-receipt' },
+  { id: 4, label: 'Payment Confirmed', icon: 'fa-check-circle' },
+  { id: 5, label: 'Shipping Scheduled', icon: 'fa-ship' },
+  { id: 6, label: 'Bill of Lading Issued', icon: 'fa-file-alt' },
+  { id: 7, label: 'Tracking Information', icon: 'fa-map-marker-alt' },
+  { id: 8, label: 'Original Documents Sent', icon: 'fa-folder-open' },
+  { id: 9, label: 'Order Completed', icon: 'fa-flag-checkered' },
 ];
 
 function OrderProgressWizard({ currentStep }) {
@@ -1233,6 +1249,15 @@ function OrderProgressWizard({ currentStep }) {
         }
         .opw-item.is-complete .opw-label { color: #16a34a; }
         .opw-item.is-active   .opw-label { color: #0c768a; }
+        .dt-info-item p {
+            margin: 0;
+            color: #0c768a;
+            font-weight: bold;
+        }
+        .dt-info-item { 
+            background: #0c768a33;
+            color: #0c768a; 
+        }
       `}</style>
 
       <div className="opw-wrapper">
@@ -1263,54 +1288,28 @@ function OrderProgressWizard({ currentStep }) {
 function ShippingInfoTable({ ship }) {
   const fmt = (v) => v || '—';
   const rows = [
-    ['Vessel Name', ship.vessel_name, 'Vessel Type', ship.vessel_type],
-    ['Voy No', ship.voy_no, 'Line', ship.line],
-    ['Estimated Time of Departure', ship.etd, 'Estimated Time of Arrival', ship.eta],
-    ['Country of Departure', ship.port_a?.country?.name, 'Country of Arrival', ship.port_d?.country?.name],
-    ['Port of Departure', ship.port_a?.port, 'Port of Arrival', ship.port_d?.port],
+    ['Vessel Name', ship.vessel_name, 'Shipping Method', ship.vessel_type],
+    ['Voyage No.', ship.voy_no, 'Shipping Line', ship.line],
+    ['Estimated Departure (ETD)', ship.etd, 'Estimated Arrival (ETA)', ship.eta],
+    ['Origin Country', ship.port_a?.country?.name, 'Destination Country', ship.port_d?.country?.name],
+    ['Port of Loading (POL)', ship.port_a?.port, 'Port of Discharge (POD)', ship.port_d?.port],
   ];
 
   return (
-    <>
-      <style>{`
-        .sit-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .sit-table th, .sit-table td {
-          padding: 10px 14px;
-          border: 1px solid #e5e7eb;
-          vertical-align: middle;
-        }
-        .sit-table th {
-          background: #f8f9fa;
-          color: #374151;
-          font-weight: 600;
-        }
-        .sit-table td { color: #1f2937; }
-        .sit-table tr:hover td, .sit-table tr:hover th { background: #f0f4ff; }
-        @media (max-width: 576px) {
-          .sit-table, .sit-table tbody, .sit-table tr, .sit-table th, .sit-table td {
-            display: block; width: 100%;
-          }
-          .sit-table tr { margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
-          .sit-table th { background: #f1f5f9; border: none; border-bottom: 1px solid #e5e7eb; }
-          .sit-table td { border: none; border-bottom: 1px solid #f3f4f6; }
-          }
-          .sit-table td { text-align: center !important;  }
-      `}</style>
-      <div className="table-responsive">
-        <table className="sit-table">
-          <tbody>
-            {rows.map(([th1, td1, th2, td2], i) => (
-              <tr key={i}>
-                <th>{th1}</th>
-                <td>{fmt(td1)}</td>
-                <th>{th2}</th>
-                <td>{fmt(td2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </>
+    <div className="dt-info-rows-wrapper">
+      {rows.map(([label1, val1, label2, val2], i) => (
+        <div key={i} className="dt-info-row">
+          <div className="dt-info-item">
+            <label>{label1}</label>
+            <p>{fmt(val1)}</p>
+          </div>
+          <div className="dt-info-item">
+            <label>{label2}</label>
+            <p>{fmt(val2)}</p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -1322,120 +1321,109 @@ function ClaimInfoTable({ clm, order }) {
 
   const claimResponse = claimData.claim_response;
 
+  const getStatusBadge = (status) => {
+    if (status === 'Not Verify') return <span className="badge bg-danger">Not Verify</span>;
+    if (status === 'Verify') return <span className="badge bg-warning text-dark">Verify</span>;
+    if (status === 'Rejected') return <span className="badge bg-danger">Rejected</span>;
+    if (status === 'Approved') return <span className="badge bg-success">Approved</span>;
+    return <span className="badge bg-secondary">{status || 'Unknown'}</span>;
+  };
+
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table className="sit-table">
-        <tbody>
-          <tr>
-            <td className="text-start" colSpan="4">
-              <strong>Claim:</strong> {claimData.cc || ''}
-            </td>
-          </tr>
-          <tr>
-            <th>Claim No</th>
-            <td>#{claimData.claim_no}</td>
-            <th>Claim Status</th>
-            <td>
-              {claimData.status === 'Not Verify' && <span className="badge bg-danger">Not Verify</span>}
-              {claimData.status === 'Verify' && <span className="badge bg-warning text-dark">Verify</span>}
-              {claimData.status === 'Rejected' && <span className="badge bg-danger">Rejected</span>}
-              {claimData.status === 'Approved' && <span className="badge bg-success">Approved</span>}
-              {!['Not Verify', 'Verify', 'Rejected', 'Approved'].includes(claimData.status) && (
-                <span className="badge bg-secondary">{claimData.status || 'Unknown'}</span>
-              )}
-            </td>
-          </tr>
-          <tr>
-            <th>Paid Amount</th>
-            <td>
-              {order.payment_price ? Number(order.payment_price).toLocaleString('en-US') : 0} USD
-            </td>
-            <th>Sales Executive</th>
-            <td>
-              {order.invoice_id ? order.req_admin?.name : order.admin?.name}
-            </td>
-          </tr>
-          <tr>
-            <th>Claim Amount</th>
-            <td>{claimData.claim_amount ? Number(claimData.claim_amount).toLocaleString('en-US') : 0} USD</td>
-            {claimResponse ? (
-              <>
-                <th>Claim Approved</th>
-                <td>{claimResponse.approved_amount ? Number(claimResponse.approved_amount).toLocaleString('en-US') : 0} USD</td>
-              </>
-            ) : (
-              <td colSpan="2"></td>
-            )}
-          </tr>
-          {claimResponse && (
-            <>
-              <tr>
-                <th>Claim Policy</th>
-                <td>
-                  {claimResponse.claim_policy == '1' ? 'Return Money' : 'Adjusting in next Purchase'}
-                </td>
-                <th>Claim Slip</th>
-                <td className="text-center">
-                  <form method="post" action="https://media.carpoolkr.com/claim/download" target="_blank">
-                    <input type="hidden" name="id" value={claimResponse.id} />
-                    <button className="btn btn-sm btn-light border shadow-sm" type="submit" name="Submit">
-                      <i className="fa fa-download text-primary"></i>
-                    </button>
-                  </form>
-                </td>
-              </tr>
-              <tr>
-                <th>Claim Use</th>
-                <td>{claimResponse.claim_use == '1' ? 'Yes' : 'No'}</td>
-                {claimData.claim_use_date ? (
-                  <>
-                    <th>Claim Use Date</th>
-                    <td>{claimResponse.claim_use_date}</td>
-                  </>
-                ) : (
-                  <>
-                    <th>
-                      {claimResponse.claim_policy == '1' ? 'Money Receipt' : 'Action'}
-                    </th>
-                    <td className="text-center">
-                      {claimResponse.claim_policy == '1' ? (
-                        claimResponse.claim_use == '1' ? (
-                          <form method="post" action="https://media.carpoolkr.com/claim/receipt/download" target="_blank">
-                            <input type="hidden" name="id" value={claimResponse.id} />
-                            <button className="btn btn-sm btn-light border shadow-sm" type="submit">
-                              <i className="fa fa-download text-primary"></i>
-                            </button>
-                          </form>
-                        ) : null
-                      ) : 'NULL'}
-                    </td>
-                  </>
-                )}
-              </tr>
-              {claimData.claim_use_date && (
-                <tr>
-                  <th>
-                    {claimResponse.claim_policy == '1' ? 'Money Receipt' : 'Action'}
-                  </th>
-                  <td className="text-center">
-                    {claimResponse.claim_policy == '1' ? (
-                      claimResponse.claim_use == '1' ? (
-                        <form method="post" action="https://media.carpoolkr.com/claim/receipt/download" target="_blank">
+    <div className="dt-info-rows-wrapper">
+      {/* Title row */}
+      {claimData.cc && (
+        <div className="dt-info-row">
+          <div className="dt-info-item">
+            <label>Claim Title</label>
+            <p>{claimData.cc}</p>
+          </div>
+          <div className="dt-info-item">
+            <label>Claim Status</label>
+            <p>{getStatusBadge(claimData.status)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Claim No & Status */}
+      <div className="dt-info-row">
+        <div className="dt-info-item">
+          <label>Claim No</label>
+          <p>#{claimData.claim_no}</p>
+        </div>
+        <div className="dt-info-item">
+          <label>Sales Executive</label>
+          <p>{order.invoice_id ? order.req_admin?.name : order.admin?.name || '—'}</p>
+        </div>
+      </div>
+
+      {/* Paid Amount & Sales Executive */}
+      <div className="dt-info-row">
+        <div className="dt-info-item">
+          <label>Paid Amount</label>
+          <p>{order.payment_price ? Number(order.payment_price).toLocaleString('en-US') : 0} USD</p>
+        </div>
+        <div className="dt-info-item">
+          <label>Claim Amount</label>
+          <p>{claimData.claim_amount ? Number(claimData.claim_amount).toLocaleString('en-US') : 0} USD</p>
+        </div>
+        {claimResponse ? (
+          <div className="dt-info-item">
+            <label>Claim Approved Amount</label>
+            <p>{claimResponse.approved_amount ? Number(claimResponse.approved_amount).toLocaleString('en-US') : 0} USD</p>
+          </div>
+        ) : (
+          <div className="dt-info-item" style={{ visibility: 'hidden' }} />
+        )}
+      </div>
+
+      {/* Claim Response rows */}
+      {claimResponse && (
+        <>
+          <div className="dt-info-row">
+            <div className="dt-info-item">
+              <label>Claim Policy</label>
+              <p>{claimResponse.claim_policy == '1' ? 'Return Money' : 'Adjusting in next Purchase'}</p>
+            </div>
+            <div className="dt-info-item">
+              <label>Claim Slip</label>
+              <p>
+                <form method="post" action="https://media.carpoolkr.com/claim/download" target="_blank" style={{ display: 'inline' }}>
+                  <input type="hidden" name="id" value={claimResponse.id} />
+                  <button className="btn btn-sm btn-light border shadow-sm" type="submit" name="Submit">
+                    <i className="fa fa-download text-primary"></i> Download
+                  </button>
+                </form>
+              </p>
+            </div>
+          </div>
+
+          <div className="dt-info-row">
+            <div className="dt-info-item">
+              <label>Claim Use</label>
+              <p>{claimResponse.claim_use == '1' ? 'Yes' : 'No'}</p>
+            </div>
+            <div className="dt-info-item">
+              <label>{claimData.claim_use_date ? 'Claim Use Date' : (claimResponse.claim_policy == '1' ? 'Money Receipt' : 'Action')}</label>
+              <p>
+                {claimData.claim_use_date
+                  ? claimResponse.claim_use_date
+                  : claimResponse.claim_policy == '1'
+                    ? (claimResponse.claim_use == '1'
+                      ? (
+                        <form method="post" action="https://media.carpoolkr.com/claim/receipt/download" target="_blank" style={{ display: 'inline' }}>
                           <input type="hidden" name="id" value={claimResponse.id} />
                           <button className="btn btn-sm btn-light border shadow-sm" type="submit">
-                            <i className="fa fa-download text-primary"></i>
+                            <i className="fa fa-download text-primary"></i> Download
                           </button>
                         </form>
-                      ) : null
-                    ) : 'NULL'}
-                  </td>
-                  <td colSpan="2"></td>
-                </tr>
-              )}
-            </>
-          )}
-        </tbody>
-      </table>
+                      ) : '—')
+                    : 'NULL'}
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
